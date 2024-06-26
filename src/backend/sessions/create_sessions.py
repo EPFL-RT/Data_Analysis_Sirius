@@ -163,6 +163,44 @@ class SessionCreator:
             df = pd.DataFrame(df, columns=['FSM', 'duration(s)', 'start', 'end'])
         return df
 
+    def fetch_data_time(self, start_date: pd.Timestamp, end_date: pd.Timestamp, verify_ssl: bool) -> pd.DataFrame:
+        start_date = date_to_influx(start_date)
+        end_date = date_to_influx(end_date)
+
+        query = f"""from(bucket:"{self.fetcher.bucket_name}") 
+        |> range(start: {start_date}, stop: {end_date})
+        |> pivot(rowKey:["_time"], columnKey: ["_measurement", "_field"], valueColumn: "_value")
+        |> drop(columns: ["_start", "_stop"])
+        |> yield(name: "mean")
+        """
+
+        with st.spinner("Fetching session data from InfluxDB..."):
+            try:
+                df = self.fetcher.fetch_data(query, verify_sll=verify_ssl)
+            except urllib3.exceptions.ReadTimeoutError as e:
+                st.warning("The connection to the database timed out. Tyring again with divide and conquer strategy...")
+
+                # Split the datetime range in two
+                datetime_range = timestamp_to_datetime_range(start_date, end_date)
+                start = pd.to_datetime(datetime_range[0].split()[1])
+                end = pd.to_datetime(datetime_range[1].split()[1][:-1])
+                mid = start + (end - start) / 2
+
+                # Fetch the data into 2 steps
+                first_datetime_range = timestamp_to_datetime_range(start, mid)
+                second_datetime_range = timestamp_to_datetime_range(mid, end)
+                df1 = self.fetch_data(first_datetime_range, verify_ssl)
+                df2 = self.fetch_data(second_datetime_range, verify_ssl)
+
+                # Merge the data
+                df = pd.concat([df1, df2], ignore_index=True)
+                df.index = df1.index.tolist() + df2.index.tolist()
+                df.index = pd.to_datetime(df.index)
+
+                st.success("The data has been fetched in two steps and merged.")
+            df.index = (df.index - df.index[0]).total_seconds().round(3)
+            return df
+
 
 if __name__ == '__main__':
     fetcher = InfluxDbFetcher(ConfigLogging)

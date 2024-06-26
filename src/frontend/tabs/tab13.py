@@ -306,20 +306,32 @@ class Tab13(Tab):
                 plot_data(data=data, tab_name=self.name + "AS", title="Overview",
                           default_columns=['sensors_accX', 'sensors_accY'] + self.acc_cols + self.speed_cols + ['v_accX_integrated'])
 
+            toggle_names = [
+                "Wheel Speeds", "Wheel Slip", "Wheel Speeds Estimation subplots", "Wheel Speeds Estimation",
+                "Normal Forces", "Wheel Accelerations", "Longitudinal Forces subplots", "Longitudinal Forces",
+                "Wheel MIN/MAX Torques", "Wheel torques", "Fsum"
+            ]
+
+            with st.expander("Toggle plots"):
+                toggles = {name: st.checkbox(name, key=f"{self.name} show {name}") for name in toggle_names}
+
             # Plot wheel speeds
-            with st.expander("Wheel Speeds"):
-                if st.toggle("Show wheel speeds", key=f"{self.name} show wheel speeds"):
+            name = toggle_names[0]
+            with st.expander(name):
+                if toggles[name]:
                     plot_data(data=data, tab_name=self.name + "WS", title="Wheel Speeds",
                           default_columns=self.wheel_speeds_cols + self.speed_cols[:1] + ['v_accX_integrated'])
 
             # Plot the wheel slip
-            with st.expander("Wheel Slip"):
-                if st.toggle("Show wheel slip", key=f"{self.name} show wheel slip"):
+            name = toggle_names[1]
+            with st.expander(name):
+                if toggles[name]:
                     plot_data(data=data, tab_name=self.name + "Slip", title="Slip Ratios", default_columns=self.slip_cols)
 
             # Sanity check: plot the wheel speeds estimation
-            with st.expander("Wheel Speeds Estimation subplots"):
-                if st.toggle("Show wheel speeds estimation", key=f"{self.name} show wheel speeds estimation"):
+            name = toggle_names[2]
+            with st.expander(name):
+                if toggles[name]:
                     fig, ax = plt.subplots(2, 2, figsize=(15, 10))
                     for i, wheel in enumerate(VehicleParams.wheel_names):
                         cols = [self.wheel_speeds_cols[i], self.wheel_speeds_est_cols[i], self.vl_cols[i]]
@@ -328,8 +340,9 @@ class Tab13(Tab):
                     st.pyplot(fig)
 
             # Plot longitudinal force
-            with st.expander("Wheel Speeds Estimation"):
-                if st.toggle("Show longitudinal forces", key=f"{self.name} show wheel speed estimation"):
+            name = toggle_names[3]
+            with st.expander(name):
+                if toggles[name]:
                     wheel = st.selectbox("Wheel", VehicleParams.wheel_names + ['all'], key=f"{self.name} wheel selection long force")
                     cols = self.wheel_speeds_cols + self.wheel_speeds_est_cols + self.vl_cols
                     if wheel != 'all':
@@ -338,20 +351,23 @@ class Tab13(Tab):
                               default_columns=cols)
 
             # Plot the normal forces
-            with st.expander("Normal Forces"):
-                if st.toggle("Show normal forces", key=f"{self.name} show normal forces"):
+            name = toggle_names[4]
+            with st.expander(name):
+                if toggles[name]:
                     plot_data(data=data, tab_name=self.name + "NF", title="Normal Forces",
                               default_columns=self.normal_forces_cols)
 
             # PLot wheel accelerations
-            with st.expander("Wheel Accelerations"):
-                if st.toggle("Show wheel accelerations", key=f"{self.name} show wheel accelerations"):
+            name = toggle_names[5]
+            with st.expander(name):
+                if toggles[name]:
                     plot_data(data=data, tab_name=self.name + "WA", title="Wheel Accelerations",
                               default_columns=self.wheel_acceleration_cols)
 
             # Plot the longitudinal forces
-            with st.expander("Longitudinal Forces subplots"):
-                if st.toggle("Show longitudinal forces", key=f"{self.name} show longitudinal forces"):
+            name = toggle_names[6]
+            with st.expander(name):
+                if toggles[name]:
                     fig, ax = plt.subplots(2, 2, figsize=(15, 10))
                     for i, wheel in enumerate(VehicleParams.wheel_names):
                         cols = [self.longitudinal_forces_cols[i], self.longitudinal_forces_est_cols[i],
@@ -361,8 +377,9 @@ class Tab13(Tab):
                     st.pyplot(fig)
 
             # Plot longitudinal force
-            with st.expander("Longitudinal Forces"):
-                if st.toggle("Show longitudinal forces", key=f"{self.name} show longitudinal force"):
+            name = toggle_names[7]
+            with st.expander(name):
+                if toggles[name]:
                     wheel = st.selectbox("Wheel", VehicleParams.wheel_names + ['all'], key=f"{self.name} wheel selection long force")
                     cols = self.longitudinal_forces_cols + self.longitudinal_forces_est_cols + self.slip_cols1000
                     if wheel != 'all':
@@ -371,8 +388,9 @@ class Tab13(Tab):
                               default_columns=cols)
 
             # Plot wheel torques
-            with st.expander("Wheel MIN/MAX Torques"):
-                if st.toggle("Show wheel torques", key=f"{self.name} show wheel min/max torques"):
+            name = toggle_names[8]
+            with st.expander(name):
+                if toggles[name]:
                     add_slips = st.checkbox("Add slip ratios", key=f"{self.name} add slips")
                     window_size = st.number_input("Moving average window size", value=1, key=f"{self.name} window size")
                     fig, ax = plt.subplots(2, 2, figsize=(15, 10))
@@ -385,12 +403,18 @@ class Tab13(Tab):
                     plt.tight_layout()
                     st.pyplot(fig)
 
-            with st.expander("Wheel torques"):
-                if st.toggle("Show wheel torques", key=f"{self.name} show wheel torques"):
-                    plot_data(data=data, tab_name=self.name + "WT", title="Wheel Torques",
-                              default_columns=self.motor_torques_cols)
+            # Plot wheel torques
+            name = toggle_names[9]
+            with st.expander(name):
+                if toggles[name]:
+                    plot_data(
+                        data=data, tab_name=self.name + "WT", title="Wheel Torques", default_columns=self.motor_torques_cols
+                    )
 
-            with st.expander("Fsum"):
-                if st.toggle("Show Fsum", key=f"{self.name} show Fsum"):
-                    plot_data(data=data, tab_name=self.name + "Fsum", title="Fsum",
-                              default_columns=['Fsum', 'Fsum_est', 'Fsum_accx', 'Fsum_accxEst'])
+            name = toggle_names[10]
+            with st.expander(name):
+                if toggles[name]:
+                    plot_data(
+                        data=data, tab_name=self.name + "Fsum", title="Fsum",
+                        default_columns=['Fsum', 'Fsum_est', 'Fsum_accx', 'Fsum_accxEst']
+                    )

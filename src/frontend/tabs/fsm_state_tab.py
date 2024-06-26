@@ -26,7 +26,7 @@ class FSMStateTab(Tab):
                 st.divider()
                 if fetch_sessions:
                     # Fetch data from InfluxDB
-                    res = [session_creator.fetch_data2(state['start'], state['end'],
+                    res = [session_creator.fetch_data_time(state['start'], state['end'],
                                                        verify_ssl=st.session_state.verify_ssl)
                            for _, state in stqdm(selected_states.iterrows(), total=len(selected_states))]
                     self.memory['fsm_state_sessions'] = res

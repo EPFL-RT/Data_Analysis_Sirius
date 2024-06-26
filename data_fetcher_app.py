@@ -13,6 +13,19 @@ from stqdm import stqdm
 
 import json
 
+@st.experimental_dialog("Download data as CSV")
+def download_data(data: pd.DataFrame):
+    columns = list(data.columns)
+    selected_columns = st.multiselect("Select columns to download", columns, key="download_columns")
+    data = data[selected_columns]
+    file_name = st.text_input("File name", value="output_data.csv", key="file_name_input")
+    header = st.checkbox("Put header in downloaded data", value=True, key="header_checkbox")
+    st.download_button(
+        label="Download data as CSV",
+        data=data.to_csv(header=header).encode("utf-8"),
+        file_name=file_name,
+    )
+
 
 def init_sessions_state():
     if "sessions" not in st.session_state:
@@ -116,6 +129,8 @@ if __name__ == '__main__':
             # Select and build the tab
             tabs: dict[str, Tab] = create_tabs()
             tab_selected = st.selectbox("Select Tab", tabs.keys(), index=0, key="tab_selection")
+            if st.button("Download Data to CSV"):
+                download_data(data=tabs[tab_selected].memory['data'])
         tabs[tab_selected].build(session_creator=session_creator)
 
     with st.sidebar:
