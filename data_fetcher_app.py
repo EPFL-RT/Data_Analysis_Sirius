@@ -14,6 +14,13 @@ from stqdm import stqdm
 import json
 
 
+def show_testing_schedule():
+    with open("data/test_description/schedule.json", 'r') as f:
+        st.subheader("Testing Schedule")
+        schedule = json.load(f)
+        st.write(schedule)
+
+
 def init_sessions_state():
     if "sessions" not in st.session_state:
         st.session_state.sessions = pd.DataFrame()
@@ -43,13 +50,10 @@ if __name__ == '__main__':
     cols[1].image("data/img/epflrt_logo.png", width=200)
 
     with st.sidebar:
-        # Show testing schedules
-        with st.expander("Testing Schedules"):
-            with open("data/test_description/schedule.json", 'r') as f:
-                schedule = json.load(f)
-                st.write(schedule)
+        with st.expander("Select Date and Config", expanded=len(st.session_state.sessions) == 0):
+            # Show testing schedules
+            st.button("Show Testing Schedule", on_click=show_testing_schedule)
 
-        with st.expander("Select Date and Config", expanded=True):
             # Choose date range
             date_default = "2024-05-04"
             date = st.date_input(
@@ -96,16 +100,6 @@ if __name__ == '__main__':
 
     # Build the tabs
     if len(st.session_state.sessions) > 0:
-        # Show the Telemetry Description Tab
-        # with st.expander("Telemetry Description"):
-        #     telemetry_description_tab = TelemetryDescriptionTab()
-        #     telemetry_description_tab.build(session_creator=session_creator)
-        #
-        # with st.expander("Session Info Modification"):
-        #     session_info_tab = SessionInfoTab()
-        #     session_info_tab.build(session_creator=session_creator)
-
-
         # Show the Fetched Session and their descriptions
         with st.expander("Sessions"):
             if 'description' not in st.session_state.sessions.columns:
@@ -119,7 +113,7 @@ if __name__ == '__main__':
             st.dataframe(st.session_state.sessions.drop(columns=['start', 'end']), use_container_width=True)
 
         with st.sidebar:
-            with st.expander("Data Buckets & Dialogue Box"):
+            with st.expander("Data Buckets & Dialogue Box", expanded=True):
                 # Select data buckets to be fetched
                 data_buckets = st.multiselect("Data Buckets", DataBuckets.all, default=DataBuckets.all, key="select_buckets")
                 st.session_state.data_buckets = data_buckets

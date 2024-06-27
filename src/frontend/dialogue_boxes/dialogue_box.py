@@ -35,10 +35,11 @@ def download_data(tab: Tab):
     buckets = [c.split("_")[0] for c in columns]
     buckets = list(set(buckets))
 
-    cols = st.columns(len(buckets))
+    nb_cols = 4
+    cols = st.columns(nb_cols)
     bucket_selected = [False for _ in buckets]
     for i, bucket in enumerate(buckets):
-        bucket_selected[i] = cols[i].checkbox(bucket, value=True, key=f"bucket_{bucket}")
+        bucket_selected[i] = cols[i % nb_cols].checkbox(bucket, value=True, key=f"bucket_{bucket}")
 
     selected_buckets = [buckets[i] for i, selected in enumerate(bucket_selected) if selected]
     bucket_columns = [c for c in columns if c.split("_")[0] in selected_buckets]
@@ -82,6 +83,11 @@ def compute_state_estimator(tab: Tab):
         data_cov = pd.DataFrame(estimations_cov, index=index, columns=columns)
         tab.memory['data_cov'] = data_cov.copy()
         st.balloons()
+
+        # TODO: remove this line and include in the dialogue box
+        if tab.description in ['Acceleration Analysis', 'Skid-Pad Analysis']:
+            with st.spinner("Creating new features"):
+                tab.create_new_feature()
         st.rerun()
 
 
@@ -89,7 +95,7 @@ def filter_apps_duration(tab: Tab):
     data = tab.memory['data']
     cols = st.columns(3)
     apps_diff = data['sensors_APPS_Travel'].diff()
-    if cols[0].toggle("Filter APPS rising edge", key=f"{tab.name} filter APPS rising edge"):
+    if cols[0].toggle("Filter APPS rising edge", key=f"{tab.name} filter APPS rising edge", value=True):
         # Find and APPS rising edge
         apps_rising_edge = apps_diff.gt(0)
         apps_rising_edge = apps_rising_edge[apps_rising_edge].index
@@ -113,7 +119,7 @@ def filter_apps_duration(tab: Tab):
 
     time_from_start = cols[2].number_input(
         "Time from start [ms]", value=200, key=f"{tab.name} time from start")
-    if cols[2].toggle("Filter with time from start"):
+    if cols[2].toggle("Filter with time from start", value=True):
         data = data.iloc[:time_from_start]
 
     if st.button("Apply filter"):

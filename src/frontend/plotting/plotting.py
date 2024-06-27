@@ -8,6 +8,7 @@ import streamlit as st
 import plotly.graph_objects as go
 
 
+@st.experimental_fragment
 def plot_data(
         data: pd.DataFrame, tab_name: str, title: str = "Sensors",
         default_columns: list = None, fig_ax: Tuple[plt.Figure, plt.Axes] = None,
@@ -30,11 +31,13 @@ def plot_data(
             options=data.columns,
             default=["sensors_aXEst", "sensors_vXEst"] if default_columns is None else default_columns,
             key=f"{tab_name} columns to plot",
+            label_visibility="collapsed",
         )
         samples_to_plot = st.select_slider(
             label="Number of samples to plot", options=data.index,
             value=[data.index[0], data.index[-1]], format_func=lambda x: f"{x:.2f}",
             key=f"{tab_name} samples to plot",
+            label_visibility="collapsed",
         )
     else:
         columns_to_plot = default_columns

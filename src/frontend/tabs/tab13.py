@@ -149,35 +149,8 @@ class Tab13(Tab):
         data['sensors_mu_est'] = data[SE_param.estimated_states_names].apply(
             lambda x: traction_ellipse(x), axis=1
         )
-
         self.memory['data'] = data.copy()
 
-    def compute_state_estimator(self):
-
-        data = self.memory['data']
-        samples = (data.index[0], data.index[-1])
-
-        sensors_list: list[Sensors] = get_sensors_from_data(data.loc[samples[0]:samples[1]])
-        estimator_app = StateEstimatorApp(independent_updates=False)
-        estimations = [np.zeros(SE_param.dim_x) for _ in sensors_list]
-        estimations_cov = [np.zeros(SE_param.dim_x) for _ in sensors_list]
-        for i, sensors in stqdm(enumerate(sensors_list), total=len(sensors_list)):
-            state, cov = estimator_app.run(sensors)
-            estimations[i] = state
-            estimations_cov[i] = cov
-
-        # Update the data
-        columns = SE_param.estimated_states_names
-        data.loc[samples[0]: samples[1], columns] = np.array(estimations)
-        self.memory['data'] = data.copy()
-
-        # Update the data_cov
-        index = data.loc[samples[0]: samples[1]].index
-        data_cov = pd.DataFrame(estimations_cov, index=index, columns=columns)
-        self.memory['data_cov'] = data_cov.copy()
-        st.balloons()
-
-        self.create_new_feature()
 
     def build(self, session_creator) -> bool:
 
@@ -188,78 +161,27 @@ class Tab13(Tab):
             session_info=True
         )
 
-        cols = st.columns(6)
+        cols = st.columns(4)
         if cols[0].button("Fetch this session", key=f"{self.name} fetch data button"):
             data = session_creator.fetch_data(datetime_range, verify_ssl=st.session_state.verify_ssl)
             self.memory['data'] = data
-            self.create_new_feature()
+            with st.spinner("Creating new features"):
+                self.create_new_feature()
 
         if len(self.memory['data']) > 0:
             cols[1].success("Data fetched")
 
-        if cols[2].button("Compute State Estimation", key=f"{self.name} compute state estimation"):
-            with cols[2].status("Computing state estimation..."):
-                self.compute_state_estimator()
-
-        if 'data_cov' in self.memory:
-            cols[3].success("Computed")
-
-        if cols[4].button("Create new features", key=f"{self.name} create new features"):
-            with cols[4].status("Creating new features"):
+        if cols[2].button("Create new features", key=f"{self.name} create new features"):
+            with cols[2].status("Creating new features"):
                 self.create_new_feature()
 
         if self.normal_forces_cols[0] in self.memory['data'].columns:
-            cols[5].success("Created")
+            cols[3].success("Created")
 
         st.divider()
 
         if len(self.memory['data']) > 0:
             data = self.memory['data']
-
-            with st.expander("Filtering"):
-
-                with st.container(border=True):
-                    cols = st.columns(4)
-                    threshold = cols[1].number_input("Threshold", value=60, key=f"{self.name} APPS Threshold")
-                    left_shift = cols[2].number_input("Left Shift", value=20, key=f"{self.name} left shift")
-                    right_shift = cols[3].number_input("Right Shift", value=0, key=f"{self.name} right shift")
-                    if cols[0].toggle("Filter APPS > Threshold", key=f"{self.name} filter APPS"):
-                        index = data['sensors_APPS_Travel'] > threshold
-                        augmented_index = index | index.shift(right_shift) | index.shift(-left_shift)
-                        data = data[augmented_index]
-
-
-                with st.container(border=True):
-                    cols = st.columns(3, gap='large')
-
-                    apps_diff = data['sensors_APPS_Travel'].diff()
-                    if cols[0].toggle("Filter APPS rising edge", key=f"{self.name} filter APPS rising edge"):
-                        # Find and APPS rising edge
-                        apps_rising_edge = apps_diff.gt(0)
-                        apps_rising_edge = apps_rising_edge[apps_rising_edge].index
-                        if len(apps_rising_edge) > 0:
-                            rising_edge_time = cols[0].selectbox("Rising edge time",apps_rising_edge, key=f"{self.name} rising edge number")
-                            data = data.loc[rising_edge_time:]
-                        else:
-                            st.warning("No rising edge found")
-
-                    if cols[1].toggle("Filter APPS falling edge", key=f"{self.name} filter APPS falling edge"):
-                        # Find and APPS falling edge
-                        apps_falling_edge = apps_diff.lt(0)
-                        apps_falling_edge = apps_falling_edge[apps_falling_edge].index
-                        if len(apps_falling_edge) > 0:
-                            falling_edge_time = cols[1].selectbox("Falling edge time", apps_falling_edge, key=f"{self.name} falling edge number")
-                            data = data.loc[:falling_edge_time]
-                        else:
-                            st.warning("No falling edge found")
-
-                    time_from_start = cols[2].number_input("Time from start [ms]", value=200,
-                                                           key=f"{self.name} time from start")
-                    if cols[2].toggle("Filter with time from start"):
-                        data = data.iloc[:time_from_start]
-
-
-
 
             with st.container(border=True):
                 mode_int = data[self.knob_mode].iloc[0]
@@ -299,39 +221,49 @@ class Tab13(Tab):
                 plot_data(data=data, tab_name=self.name + "S", title="Sensors", default_columns=sensors_cols, simple_plot=True)
             st.divider()
 
-
-            # PLot acceleration and speed
-            with st.expander("Acceleration and Speed"):
-                data['v_accX_integrated'] = data['sensors_accX'].cumsum() * self.sampling_time
-                plot_data(data=data, tab_name=self.name + "AS", title="Overview",
-                          default_columns=['sensors_accX', 'sensors_accY'] + self.acc_cols + self.speed_cols + ['v_accX_integrated'])
-
             toggle_names = [
                 "Wheel Speeds", "Wheel Slip", "Wheel Speeds Estimation subplots", "Wheel Speeds Estimation",
                 "Normal Forces", "Wheel Accelerations", "Longitudinal Forces subplots", "Longitudinal Forces",
                 "Wheel MIN/MAX Torques", "Wheel torques", "Fsum"
             ]
 
-            with st.expander("Toggle plots"):
-                toggles = {name: st.checkbox(name, key=f"{self.name} show {name}") for name in toggle_names}
+            with st.expander("Additional plots"):
+                with st.form(key=f"form {self.name}"):
+                    nb_cols = 3
+                    cols = st.columns(nb_cols)
+                    toggles = {name: cols[i % nb_cols].checkbox(name, key=f"{self.name} show {name}")
+                               for i, name in enumerate(toggle_names)}
+
+                    st.form_submit_button("Submit")
+
+            selected_toggle_names = [name for name, toggle in toggles.items() if toggle]
+            tabs = st.tabs(['Acc & Speed'] + selected_toggle_names)
+            tab_map = {name: tabs[i+1] for i, name in enumerate(selected_toggle_names)}
+
+            # PLot acceleration and speed
+            with tabs[0]:
+                data['v_accX_integrated'] = data['sensors_accX'].cumsum() * self.sampling_time
+                plot_data(data=data, tab_name=self.name + "AS", title="Overview",
+                          default_columns=['sensors_accX', 'sensors_accY'] + self.acc_cols + self.speed_cols + [
+                              'v_accX_integrated'])
 
             # Plot wheel speeds
             name = toggle_names[0]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     plot_data(data=data, tab_name=self.name + "WS", title="Wheel Speeds",
                           default_columns=self.wheel_speeds_cols + self.speed_cols[:1] + ['v_accX_integrated'])
 
             # Plot the wheel slip
             name = toggle_names[1]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     plot_data(data=data, tab_name=self.name + "Slip", title="Slip Ratios", default_columns=self.slip_cols)
 
             # Sanity check: plot the wheel speeds estimation
             name = toggle_names[2]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     fig, ax = plt.subplots(2, 2, figsize=(15, 10))
                     for i, wheel in enumerate(VehicleParams.wheel_names):
                         cols = [self.wheel_speeds_cols[i], self.wheel_speeds_est_cols[i], self.vl_cols[i]]
@@ -341,33 +273,33 @@ class Tab13(Tab):
 
             # Plot longitudinal force
             name = toggle_names[3]
-            with st.expander(name):
-                if toggles[name]:
-                    wheel = st.selectbox("Wheel", VehicleParams.wheel_names + ['all'], key=f"{self.name} wheel selection long force")
+            if toggles[name]:
+                with tab_map[name]:
+                    wheel = st.selectbox("Wheel", VehicleParams.wheel_names + ['all'], key=f"{self.name} wheel selection wheel speed")
                     cols = self.wheel_speeds_cols + self.wheel_speeds_est_cols + self.vl_cols
                     if wheel != 'all':
                         cols = [col for col in cols if wheel in col]
-                    plot_data(data=data, tab_name=self.name + "LF", title="Longitudinal Forces",
+                    plot_data(data=data, tab_name=self.name + "WSS", title="Wheel Speeds Estimation",
                               default_columns=cols)
 
             # Plot the normal forces
             name = toggle_names[4]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     plot_data(data=data, tab_name=self.name + "NF", title="Normal Forces",
                               default_columns=self.normal_forces_cols)
 
             # PLot wheel accelerations
             name = toggle_names[5]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     plot_data(data=data, tab_name=self.name + "WA", title="Wheel Accelerations",
                               default_columns=self.wheel_acceleration_cols)
 
             # Plot the longitudinal forces
             name = toggle_names[6]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     fig, ax = plt.subplots(2, 2, figsize=(15, 10))
                     for i, wheel in enumerate(VehicleParams.wheel_names):
                         cols = [self.longitudinal_forces_cols[i], self.longitudinal_forces_est_cols[i],
@@ -378,8 +310,8 @@ class Tab13(Tab):
 
             # Plot longitudinal force
             name = toggle_names[7]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     wheel = st.selectbox("Wheel", VehicleParams.wheel_names + ['all'], key=f"{self.name} wheel selection long force")
                     cols = self.longitudinal_forces_cols + self.longitudinal_forces_est_cols + self.slip_cols1000
                     if wheel != 'all':
@@ -389,8 +321,8 @@ class Tab13(Tab):
 
             # Plot wheel torques
             name = toggle_names[8]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     add_slips = st.checkbox("Add slip ratios", key=f"{self.name} add slips")
                     window_size = st.number_input("Moving average window size", value=1, key=f"{self.name} window size")
                     fig, ax = plt.subplots(2, 2, figsize=(15, 10))
@@ -405,15 +337,15 @@ class Tab13(Tab):
 
             # Plot wheel torques
             name = toggle_names[9]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     plot_data(
                         data=data, tab_name=self.name + "WT", title="Wheel Torques", default_columns=self.motor_torques_cols
                     )
 
             name = toggle_names[10]
-            with st.expander(name):
-                if toggles[name]:
+            if toggles[name]:
+                with tab_map[name]:
                     plot_data(
                         data=data, tab_name=self.name + "Fsum", title="Fsum",
                         default_columns=['Fsum', 'Fsum_est', 'Fsum_accx', 'Fsum_accxEst']
