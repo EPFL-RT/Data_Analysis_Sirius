@@ -72,7 +72,7 @@ class SessionCreator:
 
         if cols[0].toggle("Show Info", session_info, key=f"{key} toggle session info"):
             session_info_crud = st.session_state.session_info_crud
-            session_info = session_info_crud.read(dfs_options[session_index])
+            session_info = session_info_crud.read(session_index)
             # session_info['driver'] = drivers.get(session_info['driver'], 'Unknown')
             cols[1].json(session_info, expanded=True)
         return session_index

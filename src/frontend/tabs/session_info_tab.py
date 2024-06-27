@@ -5,6 +5,7 @@ import streamlit as st
 from src.backend.sessions.create_sessions import SessionCreator
 from src.backend.data_crud.json_session_info import SessionInfoJsonCRUD, SessionInfo
 from src.backend.state_estimation.config.vehicle_params import VehicleParams
+from src.frontend.plotting.plotting import plot_data
 from src.frontend.tabs.base import Tab
 from config.config import drivers, Divisons
 
@@ -23,7 +24,7 @@ class SessionInfoTab(Tab):
     def build(self, session_creator: SessionCreator):
         st.header(self.description)
         cols = st.cols = st.columns([1, 1, 4])
-        if cols[0].button("Get sessions infos", key=f"{self.name} fetch data button"):
+        if cols[0].button("Get sessions infos", key=f"{self.name} fetch session info button"):
             session_infos = {key: self.crud.read(key) for key in st.session_state.sessions.index}
             self.memory['session_info_data'] = pd.DataFrame(session_infos).T
 
@@ -46,6 +47,17 @@ class SessionInfoTab(Tab):
                 for key, row in new_df.iterrows():
                     self.crud.create(key, **row.to_dict())
                 cols[2].success("Data saved")
+
+            st.divider()
+
+            datetime_range = session_creator.r2d_session_selector(
+                st.session_state.sessions, key=f"{self.name} session selector")
+            if st.button("Fetch this session", key=f"{self.name} fetch data button"):
+                data = session_creator.fetch_data(datetime_range, verify_ssl=st.session_state.verify_ssl)
+                self.memory['data'] = data
+
+            if len(self.memory['data']) > 0:
+                plot_data(self.memory['data'], tab_name="Session Info Modification", title="Visualize Data")
 
 
 
