@@ -68,9 +68,6 @@ class EKF:
         assert all(phi.flatten() != -np.inf), "phi contains -inf values \n {}".format(phi)
         assert all(x.flatten() != -np.inf), "x contains -inf values \n {}".format(x)
         assert all(P.flatten() != -np.inf), "P contains -inf values \n {}".format(P)
-
-        print(x)
-
         return x, P
 
 

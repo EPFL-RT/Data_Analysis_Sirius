@@ -9,8 +9,8 @@ class Tab2(Tab):
 
     def __init__(self):
         super().__init__("tab2", "Maximum features extraction")
-        if "datas" not in self.memory:
-            self.memory['datas'] = pd.DataFrame()
+        if "data" not in self.memory:
+            self.memory['data'] = pd.DataFrame()
 
     def build(self, session_creator: SessionCreator):
 
@@ -25,10 +25,10 @@ class Tab2(Tab):
                 bar.progress(text=f"Fetching data", value=(i + 1) / len(datetime_ranges))
                 datas = pd.concat([datas, data], axis=0)
 
-            self.memory['datas'] = datas
+            self.memory['data'] = datas
 
-        if len(self.memory['datas']) > 0:
-            datas = self.memory['datas']
+        if len(self.memory['data']) > 0:
+            datas = self.memory['data']
             # Select the Data
             selected_columns = st.multiselect(
                 label="Select the fields you want examine", options=datas.columns, default=list(datas.columns[:2]))

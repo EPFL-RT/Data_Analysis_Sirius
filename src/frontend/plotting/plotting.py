@@ -11,8 +11,8 @@ import plotly.graph_objects as go
 def plot_data(
         data: pd.DataFrame, tab_name: str, title: str = "Sensors",
         default_columns: list = None, fig_ax: Tuple[plt.Figure, plt.Axes] = None,
-        simple_plot: bool = False
-) -> Tuple[List[str], List[str]]:
+        simple_plot: bool = False,
+        enable_column_selection=True) -> Tuple[List[str], List[str]]:
 
     if simple_plot:
         fig, ax = plt.subplots(figsize=(10, 5)) if fig_ax is None else fig_ax
@@ -24,19 +24,21 @@ def plot_data(
         st.pyplot(fig)
         return default_columns, [data.index[0], data.index[-1]]
 
-
-
-    columns_to_plot = st.multiselect(
-        label="Select the labels to plot",
-        options=data.columns,
-        default=["sensors_aXEst", "sensors_vXEst"] if default_columns is None else default_columns,
-        key=f"{tab_name} columns to plot",
-    )
-    samples_to_plot = st.select_slider(
-        label="Number of samples to plot", options=data.index,
-        value=[data.index[0], data.index[-1]], format_func=lambda x: f"{x:.2f}",
-        key=f"{tab_name} samples to plot",
-    )
+    if enable_column_selection:
+        columns_to_plot = st.multiselect(
+            label="Select the labels to plot",
+            options=data.columns,
+            default=["sensors_aXEst", "sensors_vXEst"] if default_columns is None else default_columns,
+            key=f"{tab_name} columns to plot",
+        )
+        samples_to_plot = st.select_slider(
+            label="Number of samples to plot", options=data.index,
+            value=[data.index[0], data.index[-1]], format_func=lambda x: f"{x:.2f}",
+            key=f"{tab_name} samples to plot",
+        )
+    else:
+        columns_to_plot = default_columns
+        samples_to_plot = [data.index[0], data.index[-1]]
     plot_data = data[columns_to_plot].loc[samples_to_plot[0]:samples_to_plot[1]]
 
     cols = st.columns(2)

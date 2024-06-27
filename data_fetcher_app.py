@@ -9,27 +9,14 @@ from src.backend.api_call.influxdb_api import InfluxDbFetcher
 from src.backend.data_crud.json_session_info import SessionInfoJsonCRUD
 from src.backend.sessions.create_sessions import SessionCreator
 from src.frontend.tabs import create_tabs, Tab, FSMStateTab, TelemetryDescriptionTab, SessionInfoTab
+from src.frontend.dialogue_boxes.dialogue_box import create_dialogue_box
 from stqdm import stqdm
-
 import json
-
-@st.experimental_dialog("Download data as CSV")
-def download_data(data: pd.DataFrame):
-    columns = list(data.columns)
-    selected_columns = st.multiselect("Select columns to download", columns, key="download_columns")
-    data = data[selected_columns]
-    file_name = st.text_input("File name", value="output_data.csv", key="file_name_input")
-    header = st.checkbox("Put header in downloaded data", value=True, key="header_checkbox")
-    st.download_button(
-        label="Download data as CSV",
-        data=data.to_csv(header=header).encode("utf-8"),
-        file_name=file_name,
-    )
 
 
 def init_sessions_state():
     if "sessions" not in st.session_state:
-        st.session_state.sessions = []
+        st.session_state.sessions = pd.DataFrame()
 
     if "fetcher" not in st.session_state:
         st.session_state.fetcher = InfluxDbFetcher(config=ConfigLogging)
@@ -62,75 +49,90 @@ if __name__ == '__main__':
                 schedule = json.load(f)
                 st.write(schedule)
 
-        # Choose date range
-        date_default = "2024-05-04"
-        date = st.date_input(
-            "Date", value=pd.to_datetime(date_default),
-            max_value=pd.to_datetime(datetime.now().strftime("%Y-%m-%d")),
-            on_change=lambda: st.session_state.pop("sessions", None),
-        )
-        if "session_info_crud" not in st.session_state:
-            st.session_state.session_info_crud = SessionInfoJsonCRUD(f"data/test_description/session_information/{date}.json")
-
-        # Enable / Disable SSL verification
-        st.session_state.verify_ssl = st.checkbox("Fetch with SSL", value=True)
-        if st.checkbox("Fetch Live Data", value=False):
-            st.session_state.fetcher = InfluxDbFetcher(config=ConfigLive)
-            st.session_state.session_creator = SessionCreator(fetcher=st.session_state.fetcher)
-        else:
-            st.session_state.fetcher = InfluxDbFetcher(config=ConfigLogging)
-            st.session_state.session_creator = SessionCreator(fetcher=st.session_state.fetcher)
-
-        # Choose FSM value to fetch
-        st.divider()
-        cols = st.columns([2, 1])
-        fsm_values = FSM.all_states
-        fsm_value = cols[0].selectbox(
-            "FSM value", fsm_values, index=fsm_values.index(FSM.r2d),
-            label_visibility="collapsed", key="fsm_value"
-        )
-
-        # Fetch R2D sessions
-        fetch = cols[1].button(f"Fetch", key="fetch_button")
-        session_creator: SessionCreator = st.session_state.session_creator
-
-        if fetch:
-            st.session_state.fsm_states = pd.DataFrame()
-            dfs = session_creator.fetch_r2d_session(
-                date, verify_ssl=st.session_state.verify_ssl, fsm_value=fsm_value
+        with st.expander("Select Date and Config", expanded=True):
+            # Choose date range
+            date_default = "2024-05-04"
+            date = st.date_input(
+                "Date", value=pd.to_datetime(date_default),
+                max_value=pd.to_datetime(datetime.now().strftime("%Y-%m-%d")),
+                on_change=lambda: [st.session_state.pop("sessions", None),
+                 st.session_state.pop("session_info_crud", None)],
             )
-            st.session_state.sessions = dfs
-            if len(dfs) == 0:
-                st.error(
-                    "No R2D session found in the selected date range (if the requested data is recent, it might not have been uploaded yet)")
+            if "session_info_crud" not in st.session_state:
+                st.session_state.session_info_crud = SessionInfoJsonCRUD(f"data/test_description/session_information/{date}.json")
+
+            # Enable / Disable SSL verification
+            st.session_state.verify_ssl = st.checkbox("Fetch with SSL", value=True)
+            if st.checkbox("Fetch Live Data", value=False):
+                st.session_state.fetcher = InfluxDbFetcher(config=ConfigLive)
+                st.session_state.session_creator = SessionCreator(fetcher=st.session_state.fetcher)
             else:
-                st.success(f"Fetched {len(dfs)} sessions, select one in the dropdown menu")
+                st.session_state.fetcher = InfluxDbFetcher(config=ConfigLogging)
+                st.session_state.session_creator = SessionCreator(fetcher=st.session_state.fetcher)
+
+            # Choose FSM value to fetch
+            cols = st.columns([2, 1])
+            fsm_values = FSM.all_states
+            fsm_value = cols[0].selectbox(
+                "FSM value", fsm_values, index=fsm_values.index(FSM.r2d),
+                label_visibility="collapsed", key="fsm_value"
+            )
+
+            # Fetch R2D sessions
+            fetch = cols[1].button(f"Fetch", key="fetch_button")
+            session_creator: SessionCreator = st.session_state.session_creator
+
+            if fetch:
+                st.session_state.fsm_states = pd.DataFrame()
+                dfs = session_creator.fetch_r2d_session(
+                    date, verify_ssl=st.session_state.verify_ssl, fsm_value=fsm_value
+                )
+                st.session_state.sessions = dfs
+                if len(dfs) == 0:
+                    st.error(
+                        "No R2D session found in the selected date range (if the requested data is recent, it might not have been uploaded yet)")
+                else:
+                    st.success(f"Fetched {len(dfs)} sessions, select one in the dropdown menu")
 
     # Build the tabs
     if len(st.session_state.sessions) > 0:
         # Show the Telemetry Description Tab
-        with st.expander("Telemetry Description"):
-            telemetry_description_tab = TelemetryDescriptionTab()
-            telemetry_description_tab.build(session_creator=session_creator)
+        # with st.expander("Telemetry Description"):
+        #     telemetry_description_tab = TelemetryDescriptionTab()
+        #     telemetry_description_tab.build(session_creator=session_creator)
+        #
+        # with st.expander("Session Info Modification"):
+        #     session_info_tab = SessionInfoTab()
+        #     session_info_tab.build(session_creator=session_creator)
 
-        with st.expander("Session Info Modification"):
-            session_info_tab = SessionInfoTab()
-            session_info_tab.build(session_creator=session_creator)
 
+        # Show the Fetched Session and their descriptions
         with st.expander("Sessions"):
-            st.dataframe(st.session_state.sessions)
+            if 'description' not in st.session_state.sessions.columns:
+                if st.button("Get session info"):
+                    crud = st.session_state.session_info_crud
+                    session_infos = {key: crud.read(key) for key in st.session_state.sessions.index}
+                    st.session_state.session_info_data = pd.DataFrame(session_infos).T
+                    st.session_state.sessions = pd.concat(
+                        [st.session_state.sessions, st.session_state.session_info_data], axis=1
+                    )
+            st.dataframe(st.session_state.sessions.drop(columns=['start', 'end']), use_container_width=True)
 
         with st.sidebar:
-            st.divider()
-            # Select data buckets to be fetched
-            data_buckets = st.multiselect("Data Buckets", DataBuckets.all, default=DataBuckets.all, key="select_buckets")
-            st.session_state.data_buckets = data_buckets
+            with st.expander("Data Buckets & Dialogue Box"):
+                # Select data buckets to be fetched
+                data_buckets = st.multiselect("Data Buckets", DataBuckets.all, default=DataBuckets.all, key="select_buckets")
+                st.session_state.data_buckets = data_buckets
 
-            # Select and build the tab
-            tabs: dict[str, Tab] = create_tabs()
-            tab_selected = st.selectbox("Select Tab", tabs.keys(), index=0, key="tab_selection")
-            if st.button("Download Data to CSV"):
-                download_data(data=tabs[tab_selected].memory['data'])
+                # Select and build the tab
+                tabs: dict[str, Tab] = create_tabs()
+                tab_selected = st.selectbox("Select Tab", tabs.keys(), index=0, key="tab_selection")
+                tab = tabs[tab_selected]
+                if st.button("Open Dialogue Box"):
+                    if len(tab.memory['data']) > 0:
+                        create_dialogue_box(tab=tab)
+                    else:
+                        st.error("No data fetched yet, please fetch data first")
         tabs[tab_selected].build(session_creator=session_creator)
 
     with st.sidebar:

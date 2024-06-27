@@ -22,7 +22,7 @@ from src.frontend.tabs.session_info_tab import SessionInfoTab
 
 
 def create_tabs() -> dict[str, Tab]:
-    tabs = [Tab1(), Tab2(), Tab3(), Tab4(), Tab5(), Tab6(), Tab7(), Tab8(), Tab9(), Tab10(), Tab11(), Tab12(), Tab13(), Tab14()]
+    tabs = [TelemetryDescriptionTab(), SessionInfoTab(), Tab1(), Tab2(), Tab3(), Tab4(), Tab5(), Tab6(), Tab7(), Tab8(), Tab9(), Tab10(), Tab11(), Tab12(), Tab13(), Tab14()]
     tabs = list(reversed(tabs))
     tab_names = [tab.name for tab in tabs]
     assert len(tab_names) == len(set(tab_names)), "There must not be any duplicate tab names"

@@ -1,3 +1,5 @@
+import os
+import streamlit as st
 from typing import TypedDict
 import json
 from src.backend.data_crud.base import CRUD
@@ -18,15 +20,20 @@ class SessionInfoJsonCRUD(CRUD):
     def __init__(self, file_path_name: str):
         assert file_path_name.endswith('.json'), "File must be of type 'json'"
         self.file_path_name = file_path_name
-        with open(file_path_name, 'r') as f:
-            if f.read() == "":
-                self.data = {}
-            else:
-                f.seek(0)
-                self.data = json.load(f)
-                # Filter non-valid keys
-                self.data = {k: {k1: v1 for k1, v1 in v.items() if k1 in SessionInfo.__annotations__.keys()}
-                             for k, v in self.data.items()}
+
+        if not os.path.exists(file_path_name):
+            st.warning(f"Session information file does not exist.")
+            self.data = {}
+        else:
+            with open(file_path_name, 'r') as f:
+                if f.read() == "":
+                    self.data = {}
+                else:
+                    f.seek(0)
+                    self.data = json.load(f)
+                    # Filter non-valid keys
+                    self.data = {k: {k1: v1 for k1, v1 in v.items() if k1 in SessionInfo.__annotations__.keys()}
+                                 for k, v in self.data.items()}
 
     def _get_data(self, key: int) -> SessionInfo | None:
         res = self.data.get(str(key), None)
