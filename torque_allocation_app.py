@@ -87,7 +87,7 @@ def TA_explicit(Tmax, Tcmd, Mz_cmd, steering) -> dict:
     Mz_residual_allocation *= (T_residuals == 0).astype(int)
     print("Mz_residual_allocation", Mz_residual_allocation.astype(int))
     T_final = T_refs + Mz_allocation + Mz_residual_allocation
-    T_final = np.maximum(np.minimum(T_final, Tmax), -Tmax) if Tcmd > 0 else np.minimum(np.maximum(T_final, Tmax), -Tmax)
+    T_final = np.maximum(np.minimum(T_final, Tmax), -Tmax)
 
     
     print("Final Torque allocation", (T_final + 0.5).astype(int))
@@ -161,13 +161,35 @@ if __name__ == '__main__':
         results = {k: (v + 0.5).astype(int).tolist() if isinstance(v, np.ndarray) else int(v + 0.5) for k, v in
                    results_raw.items()}
 
+    results_raw_rounded = {k: np.round(v, 1) for k, v in results_raw.items()}
+
     cols = st.columns(3)
-    cols[0].metric("Total Torque", results["total_T"], results['total_T'] - Tcmd)
-    cols[0].metric("Total Moment", results["total_Mz"], results['total_Mz'] - Mz_cmd)
+    delta = np.round(results_raw_rounded['total_T'] - Tcmd, 1)
+    color = 'inverse' if Tcmd < 0 else 'inverse'if delta != 0 else 'off'
+    st.warning(color)
+    cols[0].metric(
+        "Total Torque",
+        results_raw_rounded["total_T"],
+        f"Error: {-delta}",
+        delta_color=color
+    )
+    delta = np.round(results_raw_rounded['total_Mz'] - Mz_cmd, 1)
+    color = 'inverse' if Tcmd < 0 else 'inverse' if delta != 0 else 'off'
+    cols[0].metric(
+        "Total Moment",
+        results_raw_rounded["total_Mz"],
+        f"Error: {-delta}",
+        delta_color=color
+    )
 
     st.divider()
     for i in range(4):
-        cols[i%2 + 1].metric(f"{wheels[i]}", results["T_final"][i], np.round(results_raw["grip_allocation"][i], 2), delta_color='off')
+        grip = abs(np.round(results_raw["grip_allocation"][i], 2))
+        cols[i%2 + 1].metric(
+            f"{wheels[i]}", results_raw_rounded["T_final"][i],
+            f"Ratio: {int(grip * 100)}%",
+            delta_color='off'
+        )
 
     with st.expander("Show Details"):
         st.write(results_raw)

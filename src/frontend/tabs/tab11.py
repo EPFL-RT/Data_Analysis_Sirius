@@ -22,7 +22,6 @@ class Tab11(Tab):
         if st.button("Fetch this session", key=f"{self.name} fetch data button"):
             data = session_creator.fetch_data(datetime_range, verify_ssl=st.session_state.verify_ssl)
             torques = data[self.motor_torques_cols]
-
             left_torques = torques[[self.motor_torques_cols[0], self.motor_torques_cols[2]]]
             right_torques = torques[[self.motor_torques_cols[1], self.motor_torques_cols[3]]]
 
@@ -40,5 +39,5 @@ class Tab11(Tab):
             # Plot data comparaison
             plot_data_comparaison(data=data, tab_name=self.name + "TC", title="Torque Command",
                                   default_columns=['VSI_TrqFeedback_sum', 'sensors_Torque_cmd'])
-            plot_data_comparaison(data=data, tab_name=self.name + "TD", title="Torque Delta",
+            plot_data_comparaison(data=data, tab_name=self.name + "TV", title="Torque Delta",
                                   default_columns=['VSI_TrqFeedback_delta', 'sensors_TV_delta_torque'])
