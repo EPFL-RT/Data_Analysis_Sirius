@@ -17,7 +17,8 @@ def moment_coefficients(steering: float):
 
 
 def get_torque_ref(Tcmd, Tmax):
-    if Tcmd > sum(Tmax):
+
+    if abs(Tcmd) > abs(sum(Tmax)):
         return Tmax
     else:
         return Tcmd * Tmax / sum(Tmax)
@@ -76,7 +77,7 @@ def TA_explicit(Tmax, Tcmd, Mz_cmd, steering) -> dict:
     print("Moment error", int(Mz_error))
     Mz_allocation = get_moment_allocation(Mz_error, Tmax, Mz_coefficients)
     print("Moment allocation", Mz_allocation.astype(int))
-    T_residuals = -np.minimum(T_margins - Mz_allocation, 0)
+    T_residuals = np.maximum(Mz_allocation - T_margins, 0)
     Mz_residuals = Mz_coefficients @ T_residuals
     print("Residuals", T_residuals.astype(int), int(Mz_residuals))
     Mz_residual_coefficients = (T_residuals == 0).astype(int) * Mz_coefficients
@@ -86,7 +87,7 @@ def TA_explicit(Tmax, Tcmd, Mz_cmd, steering) -> dict:
     Mz_residual_allocation *= (T_residuals == 0).astype(int)
     print("Mz_residual_allocation", Mz_residual_allocation.astype(int))
     T_final = T_refs + Mz_allocation + Mz_residual_allocation
-    T_final = np.minimum(T_final, Tmax)
+    T_final = np.maximum(np.minimum(T_final, Tmax), -Tmax) if Tcmd > 0 else np.minimum(np.maximum(T_final, Tmax), -Tmax)
 
     
     print("Final Torque allocation", (T_final + 0.5).astype(int))
@@ -109,7 +110,7 @@ def TA_explicit(Tmax, Tcmd, Mz_cmd, steering) -> dict:
         "Mz_residual_allocation": Mz_residual_allocation,
         "T_final": T_final,
         "total_T": sum(T_final),
-        "total_Mz": T_final @ Mz_coefficients,
+        "total_Mz": (T_final @ Mz_coefficients) / VehicleParams.Rw,
         "grip_allocation": T_final / Tmax,
     }
 
@@ -128,12 +129,12 @@ if __name__ == '__main__':
 
     cols = st.columns(3)
     if use_slider:
-        Tcmd = cols[0].slider("Commanded Torque", 0, 1000, 300)
-        Mz_cmd = cols[1].slider("Commanded Moment", -400, 400, 0)
+        Tcmd = cols[0].slider("Commanded Torque", -1100, 1100, 300)
+        Mz_cmd = cols[1].slider("Commanded Moment", -2000, 2000, 0)
         steering = cols[2].slider("Steering Angle", -120, 120, 0)
     else:
-        Tcmd = cols[0].number_input("Commanded Torque", 0, 1000, 300)
-        Mz_cmd = cols[1].number_input("Commanded Moment", -400, 400, 0)
+        Tcmd = cols[0].number_input("Commanded Torque", -1100, 1100, 300)
+        Mz_cmd = cols[1].number_input("Commanded Moment", -2000, 2000, 0)
         steering = cols[2].number_input("Steering Angle", -120, 120, 0)
 
     cols = st.columns(4)
@@ -145,8 +146,20 @@ if __name__ == '__main__':
             Tmax[i] = cols[i].number_input(f"{wheels[i]}", 0, 275, 200)
     st.divider()
 
-    results_raw = TA_explicit(Tmax, Tcmd, Mz_cmd * VehicleParams.Rw, steering)
-    results = {k:(v + 0.5).astype(int).tolist() if isinstance(v, np.ndarray) else int(v + 0.5) for k,v in results_raw.items()}
+
+    # final_Tmax = -Tmax if Tcmd < 0 else Tmax
+    if Tcmd >= 0:
+        results_raw = TA_explicit(Tmax, Tcmd, Mz_cmd * VehicleParams.Rw, steering)
+        results = {k: (v + 0.5).astype(int).tolist() if isinstance(v, np.ndarray) else int(v + 0.5) for k, v in
+                   results_raw.items()}
+    else:
+        results_raw = TA_explicit(Tmax, -Tcmd, -Mz_cmd * VehicleParams.Rw, -steering)
+        results_raw["T_final"] = -results_raw["T_final"]
+        results_raw["grip_allocation"] = -results_raw["grip_allocation"]
+        results_raw["total_T"] = -results_raw["total_T"]
+        results_raw["total_Mz"] = -results_raw["total_Mz"]
+        results = {k: (v + 0.5).astype(int).tolist() if isinstance(v, np.ndarray) else int(v + 0.5) for k, v in
+                   results_raw.items()}
 
     cols = st.columns(3)
     cols[0].metric("Total Torque", results["total_T"], results['total_T'] - Tcmd)
