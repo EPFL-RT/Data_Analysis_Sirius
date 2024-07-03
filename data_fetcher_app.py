@@ -54,17 +54,6 @@ if __name__ == '__main__':
             # Show testing schedules
             st.button("Show Testing Schedule", on_click=show_testing_schedule)
 
-            # Choose date range
-            date_default = "2024-05-04"
-            date = st.date_input(
-                "Date", value=pd.to_datetime(date_default),
-                max_value=pd.to_datetime(datetime.now().strftime("%Y-%m-%d")),
-                on_change=lambda: [st.session_state.pop("sessions", None),
-                 st.session_state.pop("session_info_crud", None)],
-            )
-            if "session_info_crud" not in st.session_state:
-                st.session_state.session_info_crud = SessionInfoJsonCRUD(f"data/test_description/session_information/{date}.json")
-
             # Enable / Disable SSL verification
             st.session_state.verify_ssl = st.checkbox("Fetch with SSL", value=True)
             if st.checkbox("Fetch Live Data", value=False):
@@ -74,13 +63,31 @@ if __name__ == '__main__':
                 st.session_state.fetcher = InfluxDbFetcher(config=ConfigLogging)
                 st.session_state.session_creator = SessionCreator(fetcher=st.session_state.fetcher)
 
+
             # Choose FSM value to fetch
-            cols = st.columns([2, 1])
+            cols = st.columns([3, 2])
             fsm_values = FSM.all_states
             fsm_value = cols[0].selectbox(
                 "FSM value", fsm_values, index=fsm_values.index(FSM.r2d),
                 label_visibility="collapsed", key="fsm_value"
             )
+
+            # Choose date range
+            date_default = "2024-05-04"
+            if cols[1].toggle("Last"):
+                with st.spinner("Fetching last available date..."):
+                    date_default = st.session_state.fetcher.get_last_data_date(
+                        fsm_value, st.session_state.verify_ssl)
+            date = cols[0].date_input(
+                "Date", value=pd.to_datetime(date_default),
+                label_visibility="collapsed",
+                max_value=pd.to_datetime(datetime.now().strftime("%Y-%m-%d")),
+                on_change=lambda: [st.session_state.pop("sessions", None),
+                                   st.session_state.pop("session_info_crud", None)],
+            )
+            if "session_info_crud" not in st.session_state:
+                st.session_state.session_info_crud = SessionInfoJsonCRUD(
+                    f"data/test_description/session_information/{date}.json")
 
             # Fetch R2D sessions
             fetch = cols[1].button(f"Fetch", key="fetch_button")

@@ -32,7 +32,7 @@ class Tab1(Tab):
             # Select the Data
             selected_columns = st.multiselect(
                 label="Select the fields you want to download", options=data.columns,
-                default=['sensors_vXEst', 'sensors_aXEst', 'sensors_gyroZ', 'sensors_APPS_Travel'],
+                default=list(data.columns[:2]),
                 label_visibility="collapsed"
             )
 
