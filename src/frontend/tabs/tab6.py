@@ -1,31 +1,26 @@
 import numpy as np
-import streamlit as st
 import pandas as pd
-from matplotlib import pyplot as plt
+import streamlit as st
 from stqdm import stqdm
 
-from src.backend.state_estimation.config.vehicle_params import VehicleParams
+from config.bucket_config import Var
+from src.backend.sessions.create_sessions import SessionCreator
 from src.backend.state_estimation.config.state_estimation_param import SE_param, tune_param_input
+from src.backend.state_estimation.config.vehicle_params import VehicleParams
+from src.backend.state_estimation.measurments.measurement_transformation.wheel_speed import measure_wheel_speeds
+from src.backend.state_estimation.measurments.sensors import get_sensors_from_data, Sensors
 from src.backend.state_estimation.observe_measurments.create_new_features import create_new_features
 from src.backend.state_estimation.observe_measurments.model_anaysis import plot_model_analysis
 from src.backend.state_estimation.observe_measurments.new_features_plots import plot_new_features
 from src.backend.state_estimation.observe_measurments.wheel_analysis import plot_wheel_analysis
 from src.backend.state_estimation.state_estimator_app import StateEstimatorApp
-from src.backend.state_estimation.measurments.measurement_transformation.wheel_speed import measure_wheel_speeds
-from src.backend.state_estimation.measurments.sensors import get_sensors_from_data, Sensors
-from src.backend.sessions.create_sessions import SessionCreator
+from src.backend.state_estimation.state_estimator_file_upload import upload_estimated_states
 from src.frontend.plotting.plotting import plot_data
 from src.frontend.tabs import Tab
 
-from src.backend.state_estimation.state_estimator_file_upload import upload_estimated_states
-
 
 class Tab6(Tab):
-    brake_pressure_cols = ['sensors_brake_pressure_L' for _ in range(4)]
-    motor_torques_cols = [f'VSI_TrqFeedback_{wheel}' for wheel in VehicleParams.wheel_names]
-    motor_speeds_cols = [f'VSI_Motor_Speed_{wheel}' for wheel in VehicleParams.wheel_names]
-    slip_cols = [f'sensors_s_{wheel}_est' for wheel in VehicleParams.wheel_names]
-    dpsi_col = 'sensors_dpsi_est'
+    brake_pressure_cols = [Var.bp_front for _ in range(4)]
 
     def __init__(self):
         super().__init__("tab6", "State Estimation tuning")
@@ -49,47 +44,47 @@ class Tab6(Tab):
             data = data.drop(columns=[col for col in data.columns if 'AMS' in col])
 
             # Add gyro data that is in  to deg/s
-            gyro_cols = ['sensors_gyroX', 'sensors_gyroY', 'sensors_gyroZ']
+            gyro_cols = [Var.gyroX, Var.gyroY, Var.gyroZ]
             gyro_cols_deg = [col + '_deg' for col in gyro_cols]
             data[gyro_cols_deg] = data[gyro_cols].values * 180 / np.pi
 
             # Add steering angle in rad
-            data['sensors_steering_angle_rad'] = np.deg2rad(data['sensors_steering_angle'].values)
-            data['mean_brake_pressure'] = data[['sensors_brake_pressure_R', 'sensors_brake_pressure_L']].mean(
+            data['sensors_steering_angle_rad'] = np.deg2rad(data[Var.steering_deg].values)
+            data['mean_brake_pressure'] = data[[Var.bp_front, Var.bp_rear]].mean(
                 axis=1)
 
             # Add wheel speeds in m/s
             ws_cols = [f'vWheel_{wheel}' for wheel in VehicleParams.wheel_names]
-            data[ws_cols] = measure_wheel_speeds(data[self.motor_speeds_cols].values) * VehicleParams.Rw
+            data[ws_cols] = measure_wheel_speeds(data[Var.motor_speeds].values) * VehicleParams.Rw
 
             # Add wheel slips and dpsi if not present
             if 'sensors_s_FL_est' not in data.columns:
-                data[self.slip_cols + [self.dpsi_col]] = 0
+                data[Var.se_SR + [Var.se_yaw_rate]] = 0
             self.memory['data'] = data.copy()
 
         if len(self.memory['data']) > 0:
             data = self.memory['data']
 
             # Convert yaw rate to deg/s
-            data['sensors_dpsi_est_deg'] = data[self.dpsi_col] * 180 / np.pi
+            data['sensors_dpsi_est_deg'] = data[Var.se_yaw_rate] * 180 / np.pi
 
             # Multiply slip ratios bs 100
-            slip_cols_100 = [col + '_100' for col in self.slip_cols]
-            slip_cols_1000 = [col + '_1000' for col in self.slip_cols]
-            data[slip_cols_100] = data[self.slip_cols] * 100
-            data[slip_cols_1000] = data[self.slip_cols] * 1000
+            slip_cols_100 = [col + '_100' for col in Var.se_SR]
+            slip_cols_1000 = [col + '_1000' for col in Var.se_SR]
+            data[slip_cols_100] = data[Var.se_SR] * 100
+            data[slip_cols_1000] = data[Var.se_SR] * 1000
 
             # Plot the data
             column_names, samples = plot_data(
                 data, self.name, title='X-Estimation observation',
-                default_columns=['sensors_vXEst', 'sensors_vYEst', 'sensors_aXEst', 'sensors_aYEst'],
+                default_columns=SE_param.estimated_states_names[:4],
             )
 
             if st.checkbox("Show covariance"):
                 data_cov = self.memory['data_cov']
                 plot_data(
                     data_cov, self.name + "_cov", title='X-Estimation observation covariance',
-                    default_columns=['sensors_vXEst', 'sensors_vYEst', 'sensors_aXEst', 'sensors_aYEst'],
+                    default_columns=SE_param.estimated_states_names[:4],
                 )
 
             # Download the state estimation data
@@ -177,7 +172,7 @@ class Tab6(Tab):
             if st.checkbox("Show measurement transformations"):
                 new_data = data.copy()
                 with st.spinner("Computing new features..."):
-                    new_cols = create_new_features(new_data, self.motor_torques_cols, self.brake_pressure_cols)
+                    new_cols = create_new_features(new_data, Var.torques, self.brake_pressure_cols)
                     ws_cols, dws_cols, fl_cols, fl_est_cols, fz_est_cols, ws_est_cols, vl_est_cols, acc_fsum_cols, acc_fsum_est_cols, v_adiff = new_cols
 
                 # Plot new features

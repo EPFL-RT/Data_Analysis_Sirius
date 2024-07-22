@@ -1,6 +1,7 @@
 import pandas as pd
 from influxdb_client import InfluxDBClient
 
+from config.bucket_config import BucketConfig
 from config.config import Config, ConfigLogging
 from src.backend.api_call.base import Fetcher
 
@@ -11,13 +12,13 @@ class InfluxDbFetcher(Fetcher):
         self.token = config.token
         self.org = config.org
         self.url = config.url
-        self.bucket_name = config.bucket_name
+        self.bucket_name = BucketConfig.bucket_name if config.name == "logging" else BucketConfig.bucket_name_live
 
     def get_last_data_date(self, fsm_value: str, verify_sll: bool) -> str:
         query = f"""from(bucket: "{self.bucket_name}")
   |> range(start: -3mo)
-  |> filter(fn: (r) => r["_measurement"] == "MISC")
-  |> filter(fn: (r) => r["_field"] == "FSM")
+  |> filter(fn: (r) => r["_measurement"] == "{BucketConfig.fsm_measurement}")
+  |> filter(fn: (r) => r["_field"] == "{BucketConfig.fsm}")
   |> filter(fn: (r) => r["_value"] == "{fsm_value}")
   |> last() 
   |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")"""

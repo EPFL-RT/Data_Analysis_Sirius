@@ -2,6 +2,8 @@ import numpy as np
 
 from src.backend.state_estimation.measurments.measurement_transformation import measure_delta_wheel_angle
 from src.backend.torque_vectoring.config_tv import TVParams
+
+
 def tv_reference(vx_est: float, steering_wheel: float) -> float:
     delta_wheels = measure_delta_wheel_angle(steering_wheel)
     delta_wheel_mean = np.mean(delta_wheels) * 2 # Mean between FL and FR

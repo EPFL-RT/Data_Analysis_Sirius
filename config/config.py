@@ -1,7 +1,5 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import TypedDict
-from enum import StrEnum, Enum
 
 
 class Config(ABC):
@@ -14,7 +12,6 @@ class Config(ABC):
 
 class ConfigLogging(Config):
     name = "logging"
-    bucket_name = "ariane"
     token = "cCtyspyt-jeehwf5Ayz5OmaOXnvkMj46z3C6UQlud4s8MiPZLFaFuM7z1Y_qqpmVyI5cvF4h9k-kl5dCiYmWFw=="
     org = "racingteam"
     url = "https://epfl-rt-data-logging.epfl.ch:8443"
@@ -22,18 +19,9 @@ class ConfigLogging(Config):
 
 class ConfigLive(Config):
     name = "live"
-    bucket_name = "Ariane"
     token = "uC8xUsjnPK3D2Gd-RJbYLkWYHID3k527OcBHvZQe16SfRTu-LzKSGVaZ9ckLwXDsk9UqlfNCXJhFht9FGLcXiw=="
     org = "racingteam"
     url = "http://192.168.1.10:8086"
-
-
-class DataBuckets:
-    AMS = "AMS"
-    VSI = "VSI"
-    MISC = "MISC"
-    sensors = "sensors"
-    all = ["AMS", "VSI", "MISC", "sensors"]
 
 
 class FSM:

@@ -1,7 +1,12 @@
-from typing import List
-
 from src.frontend.tabs.base import Tab
+from src.frontend.tabs.fsm_state_tab import FSMStateTab
+from src.frontend.tabs.session_info_tab import SessionInfoTab
 from src.frontend.tabs.tab1 import Tab1
+from src.frontend.tabs.tab10 import Tab10
+from src.frontend.tabs.tab11 import Tab11
+from src.frontend.tabs.tab12 import Tab12
+from src.frontend.tabs.tab13 import Tab13
+from src.frontend.tabs.tab14 import Tab14
 from src.frontend.tabs.tab2 import Tab2
 from src.frontend.tabs.tab3 import Tab3
 from src.frontend.tabs.tab4 import Tab4
@@ -10,15 +15,7 @@ from src.frontend.tabs.tab6 import Tab6
 from src.frontend.tabs.tab7 import Tab7
 from src.frontend.tabs.tab8 import Tab8
 from src.frontend.tabs.tab9 import Tab9
-from src.frontend.tabs.tab10 import Tab10
-from src.frontend.tabs.tab11 import Tab11
-from src.frontend.tabs.tab12 import Tab12
-from src.frontend.tabs.tab13 import Tab13
-from src.frontend.tabs.tab14 import Tab14
-
-from src.frontend.tabs.fsm_state_tab import FSMStateTab
 from src.frontend.tabs.telemetry_description_tab import TelemetryDescriptionTab
-from src.frontend.tabs.session_info_tab import SessionInfoTab
 
 
 def create_tabs() -> dict[str, Tab]:

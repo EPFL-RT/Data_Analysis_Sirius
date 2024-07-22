@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from config.bucket_config import Var
 from src.backend.sessions.create_sessions import SessionCreator
+from src.backend.state_estimation.config.state_estimation_param import SE_param
 from src.backend.state_estimation.config.vehicle_params import VehicleParams
 from src.backend.state_estimation.state_estimator_file_upload import upload_estimated_states
 from src.frontend.plotting.plotting import plot_data
@@ -17,10 +19,9 @@ class Tab5(Tab):
             self.memory['data'] = pd.DataFrame()
 
         self.state_estimation_df_cols: dict[str, list[str]] = dict(
-            No_slips=['_time', 'sensors_vXEst', 'sensors_vYEst', 'sensors_aXEst', 'sensors_aYEst'],
+            No_slips=['_time'] + SE_param.estimated_states_names[:4],
         )
-        self.state_estimation_df_cols['Full'] = self.state_estimation_df_cols['No_slips'] + [
-            'sensors_dpsi_est', 'sensors_s_FL_est', 'sensors_s_FR_est', 'sensors_s_RL_est', 'sensors_s_RR_est']
+        self.state_estimation_df_cols['Full'] = self.state_estimation_df_cols['No_slips'] + SE_param.estimated_states_names[4:]
 
     def build(self, session_creator: SessionCreator) -> bool:
 
@@ -31,7 +32,7 @@ class Tab5(Tab):
             data = session_creator.fetch_data(datetime_range, verify_ssl=st.session_state.verify_ssl)
 
             # Add gyro data that is in  to deg/s
-            gyro_cols = ['sensors_gyroX', 'sensors_gyroY', 'sensors_gyroZ']
+            gyro_cols = [Var.gyroX, Var.gyroY, Var.gyroZ]
             gyro_cols_deg = [col + '_deg' for col in gyro_cols]
             data[gyro_cols_deg] = data[gyro_cols].values * 180.0 / np.pi
 
@@ -42,12 +43,12 @@ class Tab5(Tab):
                         30.0 * VehicleParams.gear_ratio)
 
             # Add wheel slips and dpsi if not present
-            if 'sensors_s_FL_est' not in data.columns:
-                data['sensors_s_FL_est'] = 0
-                data['sensors_s_FR_est'] = 0
-                data['sensors_s_RL_est'] = 0
-                data['sensors_s_RR_est'] = 0
-                data['sensors_dpsi_est'] = 0
+            if Var.se_SR[0] not in data.columns:
+                data[Var.se_SR[0]] = 0
+                data[Var.se_SR[1]] = 0
+                data[Var.se_SR[2]] = 0
+                data[Var.se_SR[3]] = 0
+                data[Var.se_yaw_rate] = 0
 
             self.memory['data'] = data.copy()
 
@@ -55,12 +56,11 @@ class Tab5(Tab):
             data = self.memory['data']
 
             # Convert yaw rate to deg/s
-            data['sensors_dpsi_est_deg'] = data['sensors_dpsi_est'] * 180.0 / np.pi
+            data['sensors_dpsi_est_deg'] = data[Var.se_yaw_rate] * 180.0 / np.pi
 
             # Multiply slip ratios bs 100
-            slip_cols = ['sensors_s_FL_est', 'sensors_s_FR_est', 'sensors_s_RL_est', 'sensors_s_RR_est']
-            slip_cols_100 = [col + '_100' for col in slip_cols]
-            data[slip_cols_100] = data[slip_cols] * 100.0
+            slip_cols_100 = [col + '_100' for col in Var.se_SR]
+            data[slip_cols_100] = data[Var.se_SR] * 100.0
 
             # Import the new estimated data
             cols = st.columns([1, 1])
@@ -84,7 +84,7 @@ class Tab5(Tab):
 
             # Plot data
             if st.button("Smooth raw acceleration data"):
-                raw_data = ['sensors_accX', 'sensors_accY']
+                raw_data = [Var.accX, Var.accY]
                 data[raw_data] = data[raw_data].rolling(window=10).mean()
             column_names, samples = plot_data(data, self.name, title='X-Estimation observation',
                                               default_columns=self.state_estimation_df_cols['No_slips'][1:])

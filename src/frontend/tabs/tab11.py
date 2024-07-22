@@ -1,16 +1,19 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
+
+from config.bucket_config import Var
 from src.backend.sessions.create_sessions import SessionCreator
+from src.frontend.plotting.plotting import plot_data_comparaison, plot_data
 from src.frontend.tabs.base import Tab
-from src.frontend.plotting.plotting import plot_data_comparaison, plot_data, plot_multiple_data
-from src.backend.state_estimation.config.vehicle_params import VehicleParams
 
 
 class Tab11(Tab):
-    motor_torques_cols = [f'VSI_TrqFeedback_{wheel}' for wheel in VehicleParams.wheel_names]
 
     def __init__(self):
         super().__init__(name="tab11", description="Torque Allocator")
+
+        self.torque_sum_col = Var.torques[0][:-2] + "sum"
+        self.torque_delta_col = Var.torques[0][:-2] + "delta"
 
         if "data" not in self.memory:
             self.memory['data'] = pd.DataFrame()
@@ -21,12 +24,13 @@ class Tab11(Tab):
                                                               key=f"{self.name} session selector")
         if st.button("Fetch this session", key=f"{self.name} fetch data button"):
             data = session_creator.fetch_data(datetime_range, verify_ssl=st.session_state.verify_ssl)
-            torques = data[self.motor_torques_cols]
-            left_torques = torques[[self.motor_torques_cols[0], self.motor_torques_cols[2]]]
-            right_torques = torques[[self.motor_torques_cols[1], self.motor_torques_cols[3]]]
+            torques = data[Var.torques]
+            left_torques = torques[[Var.torques[0], Var.torques[2]]]
+            right_torques = torques[[Var.torques[1], Var.torques[3]]]
 
-            data['VSI_TrqFeedback_sum'] = torques.sum(axis=1)
-            data['VSI_TrqFeedback_delta'] = left_torques.sum(axis=1) - right_torques.sum(axis=1)
+
+            data[self.torque_sum_col] = torques.sum(axis=1)
+            data[self.torque_delta_col] = left_torques.sum(axis=1) - right_torques.sum(axis=1)
             self.memory['data'] = data
 
         if len(self.memory['data']) > 0:
@@ -34,10 +38,10 @@ class Tab11(Tab):
 
             # Plot the data
             plot_data(data=data, tab_name=self.name + "TA", title="Torque Allocator",
-                      default_columns=['VSI_TrqFeedback_sum', 'VSI_TrqFeedback_delta'])
+                      default_columns=[self.torque_sum_col, self.torque_delta_col])
 
             # Plot data comparaison
             plot_data_comparaison(data=data, tab_name=self.name + "TC", title="Torque Command",
-                                  default_columns=['VSI_TrqFeedback_sum', 'sensors_Torque_cmd'])
+                                  default_columns=[self.torque_sum_col, Var.torque_cmd])
             plot_data_comparaison(data=data, tab_name=self.name + "TV", title="Torque Delta",
-                                  default_columns=['VSI_TrqFeedback_delta', 'sensors_TV_delta_torque'])
+                                  default_columns=[self.torque_delta_col, Var.tv_delta_torque])

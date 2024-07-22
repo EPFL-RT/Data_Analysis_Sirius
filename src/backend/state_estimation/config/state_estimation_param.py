@@ -1,11 +1,12 @@
 import numpy as np
 import streamlit as st
+
+from config.bucket_config import Var
 from src.backend.state_estimation.config.vehicle_params import VehicleParams
 
 
 class SE_param:
-    estimated_states_names = (["sensors_vXEst", "sensors_vYEst", "sensors_aXEst", "sensors_aYEst", "sensors_dpsi_est"] +
-                              [f"sensors_s_{wheel}_est" for wheel in VehicleParams.wheel_names])
+    estimated_states_names = [Var.se_vx, Var.se_vy, Var.se_ax, Var.se_ay, Var.se_yaw_rate] + Var.se_SR
 
     dt = 0.01
     dim_x = 9

@@ -1,9 +1,8 @@
-import pandas as pd
 import streamlit as st
-from src.frontend.tabs import Tab
 from stqdm import stqdm
 
 from src.frontend.plotting.plotting import plot_data
+from src.frontend.tabs import Tab
 
 
 class FSMStateTab(Tab):

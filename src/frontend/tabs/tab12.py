@@ -1,15 +1,14 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
+
+from config.bucket_config import Var
 from src.backend.sessions.create_sessions import SessionCreator
-from src.frontend.tabs.base import Tab
-from src.frontend.plotting.plotting import plot_data_comparaison, plot_data, plot_multiple_data
 from src.backend.state_estimation.config.vehicle_params import VehicleParams
+from src.frontend.plotting.plotting import plot_data
+from src.frontend.tabs.base import Tab
 
 
 class Tab12(Tab):
-    motor_torques_cols = [f'VSI_TrqFeedback_{wheel}' for wheel in VehicleParams.wheel_names]
-    max_torques_cols = [f'sensors_TC_Tmax_{wheel}' for wheel in VehicleParams.wheel_names]
-    min_torques_cols = [f'sensors_TC_Tmin_{wheel}' for wheel in VehicleParams.wheel_names]
 
     def __init__(self):
         super().__init__(name="tab12", description="Traction Control")
@@ -36,9 +35,9 @@ class Tab12(Tab):
             )
             wheel_ids = [VehicleParams.wheel_names.index(wheel) for wheel in wheels]
 
-            torque_cols = [self.motor_torques_cols[wheel_id] for wheel_id in wheel_ids]
-            max_torque_cols = [self.max_torques_cols[wheel_id] for wheel_id in wheel_ids]
-            min_torque_cols = [self.min_torques_cols[wheel_id] for wheel_id in wheel_ids]
+            torque_cols = [Var.torques[wheel_id] for wheel_id in wheel_ids]
+            max_torque_cols = [Var.max_torques[wheel_id] for wheel_id in wheel_ids]
+            min_torque_cols = [Var.min_torques[wheel_id] for wheel_id in wheel_ids]
 
             cols = torque_cols + max_torque_cols + min_torque_cols
             plot_data(data=data, tab_name=self.name + "TCC", title="Traction Control", default_columns=cols)

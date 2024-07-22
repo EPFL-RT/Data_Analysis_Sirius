@@ -1,4 +1,4 @@
-from typing import TypedDict, Sequence
+from typing import TypedDict
 
 import numpy as np
 import pandas as pd

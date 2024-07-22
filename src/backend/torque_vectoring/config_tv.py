@@ -1,5 +1,3 @@
-from src.backend.state_estimation.config.vehicle_params import VehicleParams
-
 class TVParams:
 
     kp = 100

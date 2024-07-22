@@ -1,8 +1,10 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
+
 from src.backend.sessions.create_sessions import SessionCreator
+from src.frontend.plotting.plotting import plot_data, plot_multiple_data
 from src.frontend.tabs.base import Tab
-from src.frontend.plotting.plotting import plot_data_comparaison, plot_data, plot_multiple_data
+
 
 class Tab10(Tab):
     def __init__(self):

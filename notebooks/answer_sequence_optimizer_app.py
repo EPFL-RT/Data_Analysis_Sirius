@@ -1,11 +1,11 @@
+from itertools import combinations
+
 import numpy as np
 import pandas as pd
-from itertools import combinations
+import streamlit as st
 from qpsolvers import solve_qp
 from scipy.optimize import linprog
 from scipy.sparse import csc_matrix
-import streamlit as st
-
 
 st.set_page_config(layout="wide")
 st.title("Answer sequence optimizer")

@@ -1,8 +1,7 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
 import networkx as nx
-import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import streamlit as st
 
 st.set_page_config(layout="wide")
 st.title("Quizz Answer App")

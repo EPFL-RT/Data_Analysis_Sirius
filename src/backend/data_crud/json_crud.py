@@ -1,7 +1,8 @@
-from typing import TypedDict
 import json
-from src.backend.data_crud.base import CRUD
 from copy import deepcopy
+from typing import TypedDict
+
+from src.backend.data_crud.base import CRUD
 
 
 class TelemetryDescription(TypedDict):

@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from config.bucket_config import Var
 from src.backend.sessions.create_sessions import SessionCreator
 from src.frontend.signal_processing.correlation_lag import plot_correlation_log
 from src.frontend.signal_processing.moving_average import moving_avg_input
@@ -33,25 +34,16 @@ class Tab3(Tab):
             gear_ratio = 13.188
 
             velocities = pd.DataFrame()
-            data_names = [
-                'sensors_vX', 'sensors_vXEst',
-                'VSI_Motor_Speed_FR', 'VSI_Motor_Speed_FL',
-                'VSI_Motor_Speed_RR', 'VSI_Motor_Speed_RL',
-            ]
+            data_names = [Var.se_vx] + Var.motor_speeds
             for data_name in data_names:
                 if data_name in data.columns:
                     velocities[data_name] = data[data_name].copy()
 
             k = 2 * np.pi * wheel_radius / (60.0 * gear_ratio)
-            velocities['VSI_Motor_Speed_FR'] *= k
-            velocities['VSI_Motor_Speed_FL'] *= k
-            velocities['VSI_Motor_Speed_RR'] *= k
-            velocities['VSI_Motor_Speed_RL'] *= k
+            velocities[Var.motor_speeds] *= k
+            velocities['VSI_Motor_Speed_mean'] = velocities[Var.motor_speeds].mean(axis=1)
 
-            velocities['VSI_Motor_Speed_mean'] = velocities[
-                ['VSI_Motor_Speed_FR', 'VSI_Motor_Speed_FL', 'VSI_Motor_Speed_RR', 'VSI_Motor_Speed_RL']].mean(axis=1)
-
-            init_velocities = ['sensors_vXEst', 'VSI_Motor_Speed_mean']
+            init_velocities = [Var.se_vx, 'VSI_Motor_Speed_mean']
 
             # Smooth the data
             velocities = moving_avg_input(velocities, key=f"{self.name} moving average")

@@ -1,13 +1,11 @@
-import matplotlib.pyplot as plt
-import numpy as np
+import pandas as pd
 import pandas as pd
 import streamlit as st
-from sklearn.preprocessing import MinMaxScaler
 
+from config.bucket_config import Var
 from src.backend.sessions.create_sessions import SessionCreator
 from src.frontend.plotting.plotting import plot_data
 from src.frontend.tabs.base import Tab
-import plotly.graph_objects as go
 
 
 class Tab1(Tab):
@@ -23,6 +21,7 @@ class Tab1(Tab):
         datetime_range = session_creator.r2d_session_selector(st.session_state.sessions, key=f"{self.name} session selector")
         if st.button("Fetch this session", key=f"{self.name} fetch data button"):
             data = session_creator.fetch_data(datetime_range, verify_ssl=st.session_state.verify_ssl)
+            data[Var.hv_power] = data[Var.hv_current] * data[Var.hv_voltage]
             self.memory['data'] = data
 
         st.divider()

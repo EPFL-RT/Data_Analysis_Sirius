@@ -1,9 +1,11 @@
-import os
-import streamlit as st
-from typing import TypedDict
 import json
-from src.backend.data_crud.base import CRUD
+import os
 from copy import deepcopy
+from typing import TypedDict
+
+import streamlit as st
+
+from src.backend.data_crud.base import CRUD
 
 
 class SessionInfo(TypedDict):

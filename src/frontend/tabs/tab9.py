@@ -1,26 +1,17 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-from matplotlib import pyplot as plt
 
+from config.bucket_config import Var
 from src.backend.sessions.create_sessions import SessionCreator
 from src.backend.state_estimation.config.state_estimation_param import SE_param
-from src.backend.state_estimation.config.vehicle_params import VehicleParams
-from src.backend.state_estimation.mu_estimation.estimate_mu import MuEstimator
+from src.backend.state_estimation.slip_angle_estimation.slip_angle_estimator import EKF_slip_angle
 from src.frontend.plotting.plotting import plot_data, plot_data_comparaison
 from src.frontend.tabs.base import Tab
 
-from src.backend.torque_vectoring.tv_reference import tv_reference, tv_references
-
-from src.backend.state_estimation.slip_angle_estimation.slip_angle_estimator import EKF_slip_angle
-
 
 class Tab9(Tab):
-    brake_pressure_cols = ['sensors_brake_pressure_L' for _ in range(4)]
-    motor_torques_cols = [f'VSI_TrqFeedback_{wheel}' for wheel in VehicleParams.wheel_names]
-    motor_speeds_cols = [f'VSI_Motor_Speed_{wheel}' for wheel in VehicleParams.wheel_names]
-    steering_angle_cols = 'sensors_steering_angle'
-    state_estimation_cols = ['']
+    brake_pressure_cols = [Var.bp_front for _ in range(4)]
 
     def __init__(self):
         super().__init__("tab9", "Slip Angle Estimation")
@@ -50,10 +41,10 @@ class Tab9(Tab):
             ekf_slip_angle = EKF_slip_angle()
             ekf_slip_angle.x = np.array([0.00001, 0.000001, 1]).reshape(3, 1)
 
-            steering = data[self.steering_angle_cols].values
+            steering = data[Var.steering_deg].values
             steering = np.deg2rad(steering)
-            axs = data['sensors_aXEst'].values
-            ays = data['sensors_aYEst'].values
+            axs = data[Var.se_ax].values
+            ays = data[Var.se_ay].values
 
             all_states = np.zeros((len(data), 3))
             for i in range(len(data)):
@@ -69,7 +60,7 @@ class Tab9(Tab):
             plot_data_comparaison(
                 data=data,
                 tab_name=self.name + "yaw rate estimation",
-                default_columns=['sensors_gyroZ', 'gyroZ_est'],
+                default_columns=[Var.gyroY, 'gyroZ_est'],
                 title="yaw rate estimation",
             )
 

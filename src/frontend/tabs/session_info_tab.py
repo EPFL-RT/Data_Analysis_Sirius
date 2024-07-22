@@ -1,13 +1,10 @@
-import json
-
 import pandas as pd
 import streamlit as st
+
+from config.config import drivers, Divisons
 from src.backend.sessions.create_sessions import SessionCreator
-from src.backend.data_crud.json_session_info import SessionInfoJsonCRUD, SessionInfo
-from src.backend.state_estimation.config.vehicle_params import VehicleParams
 from src.frontend.plotting.plotting import plot_data
 from src.frontend.tabs.base import Tab
-from config.config import drivers, Divisons
 
 
 class SessionInfoTab(Tab):

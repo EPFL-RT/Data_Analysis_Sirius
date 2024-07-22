@@ -1,17 +1,16 @@
-from datetime import datetime, timedelta
-from typing import List
+import json
+from datetime import datetime
 
 import pandas as pd
 import streamlit as st
 
-from config.config import ConfigLogging, ConfigLive, FSM, DataBuckets
+from config.bucket_config import Measurements
+from config.config import ConfigLogging, ConfigLive, FSM
 from src.backend.api_call.influxdb_api import InfluxDbFetcher
 from src.backend.data_crud.json_session_info import SessionInfoJsonCRUD
 from src.backend.sessions.create_sessions import SessionCreator
-from src.frontend.tabs import create_tabs, Tab, FSMStateTab, TelemetryDescriptionTab, SessionInfoTab
 from src.frontend.dialogue_boxes.dialogue_box import create_dialogue_box
-from stqdm import stqdm
-import json
+from src.frontend.tabs import create_tabs, Tab, FSMStateTab
 
 
 def show_testing_schedule():
@@ -122,7 +121,7 @@ if __name__ == '__main__':
         with st.sidebar:
             with st.expander("Data Buckets & Dialogue Box", expanded=True):
                 # Select data buckets to be fetched
-                data_buckets = st.multiselect("Data Buckets", DataBuckets.all, default=DataBuckets.all, key="select_buckets")
+                data_buckets = st.multiselect("Data Buckets", Measurements.all, default=Measurements.all, key="select_buckets")
                 st.session_state.data_buckets = data_buckets
 
                 # Select and build the tab

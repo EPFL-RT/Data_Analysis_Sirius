@@ -1,9 +1,11 @@
 # %%
 import numpy as np
+import streamlit as st
+
 from src.backend.state_estimation.config.vehicle_params import VehicleParams
 from src.backend.state_estimation.measurments.measurement_transformation.steering_to_wheel_angle import \
     measure_delta_wheel_angle
-import streamlit as st
+
 
 # %%
 def moment_coefficients(steering: float):
@@ -166,7 +168,6 @@ if __name__ == '__main__':
     cols = st.columns(3)
     delta = np.round(results_raw_rounded['total_T'] - Tcmd, 1)
     color = 'inverse' if Tcmd < 0 else 'inverse'if delta != 0 else 'off'
-    st.warning(color)
     cols[0].metric(
         "Total Torque [Nm]",
         results_raw_rounded["total_T"],

@@ -1,5 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
+
+from src.backend.state_estimation.config.vehicle_params import VehicleParams
 
 
 def measure_delta_wheel_angle_old(steering_angle: float) -> np.ndarray:
@@ -32,21 +33,26 @@ def measure_delta_wheel_angle(steering_angle: float) -> np.ndarray:
 
 
 if __name__ == '__main__':
-    steering_angles = np.linspace(-80, 80, 100)
-    delta_wheel_angles = np.array([measure_delta_wheel_angle_old(steering_angle) for steering_angle in steering_angles])
+    # steering_angles = np.linspace(-80, 80, 100)
+    # delta_wheel_angles = np.array([measure_delta_wheel_angle_old(steering_angle) for steering_angle in steering_angles])
+#
+    # delta_wheel_angles = np.rad2deg(delta_wheel_angles)
+    # delta_FL = delta_wheel_angles[:, 0]
+    # delta_FR = delta_wheel_angles[:, 1]
+    # delta_RL = delta_wheel_angles[:, 2]
+    # delta_RR = delta_wheel_angles[:, 3]
+#
+    # _ = plt.figure(figsize=(12, 6))
+    # plt.plot(steering_angles, delta_FL, label='FL')
+    # plt.plot(steering_angles, delta_FR, label='FR')
+    # plt.plot(steering_angles, delta_RL, label='RL')
+    # plt.plot(steering_angles, delta_RR, label='RR')
+    # plt.legend()
+    # plt.xlabel('Steering angle [deg]')
+    # plt.ylabel('Delta wheel angle [deg]')
+    # plt.show()
 
-    delta_wheel_angles = np.rad2deg(delta_wheel_angles)
-    delta_FL = delta_wheel_angles[:, 0]
-    delta_FR = delta_wheel_angles[:, 1]
-    delta_RL = delta_wheel_angles[:, 2]
-    delta_RR = delta_wheel_angles[:, 3]
+    wheel_angle = np.mean(measure_delta_wheel_angle(45)[:2])
+    radius = VehicleParams.l / np.tan(wheel_angle)
+    print(f"Radius: {radius}")
 
-    _ = plt.figure(figsize=(12, 6))
-    plt.plot(steering_angles, delta_FL, label='FL')
-    plt.plot(steering_angles, delta_FR, label='FR')
-    plt.plot(steering_angles, delta_RL, label='RL')
-    plt.plot(steering_angles, delta_RR, label='RR')
-    plt.legend()
-    plt.xlabel('Steering angle [deg]')
-    plt.ylabel('Delta wheel angle [deg]')
-    plt.show()

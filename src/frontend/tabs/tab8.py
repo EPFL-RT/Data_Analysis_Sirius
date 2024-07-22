@@ -1,27 +1,27 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-from matplotlib import pyplot as plt
 from stqdm import stqdm
 
+from config.bucket_config import Var
 from src.backend.sessions.create_sessions import SessionCreator
 from src.backend.state_estimation.attitude_estimation.attitude_estimation import AttitudeEstimation
-from src.backend.state_estimation.config.state_estimation_param import SE_param
-from src.backend.state_estimation.config.vehicle_params import VehicleParams
 from src.backend.state_estimation.attitude_estimation.attitude_estimation_az import AttitudeEstimationAz
 from src.backend.state_estimation.attitude_estimation.attitude_estimation_simple import AttitudeEstimationSimple
 from src.backend.state_estimation.attitude_estimation.attitude_estimation_simple2 import AttitudeEstimationSimple2
-from src.backend.state_estimation.attitude_estimation.attitude_estimator_speed import AttitudeEstimationSpeed, AttitudeEstimationSpeedSimple
-
-from src.frontend.plotting.plotting import plot_data, plot_data_comparaison
+from src.backend.state_estimation.attitude_estimation.attitude_estimator_speed import AttitudeEstimationSpeed, \
+    AttitudeEstimationSpeedSimple
+from src.backend.state_estimation.config.state_estimation_param import SE_param
+from src.backend.state_estimation.config.vehicle_params import VehicleParams
+from src.frontend.plotting.plotting import plot_data
 from src.frontend.tabs.base import Tab
 
 
 class Tab8(Tab):
-    brake_pressure_cols = ['sensors_brake_pressure_L' for _ in range(4)]
-    motor_torques_cols = [f'VSI_TrqFeedback_{wheel}' for wheel in VehicleParams.wheel_names]
-    motor_speeds_cols = [f'VSI_Motor_Speed_{wheel}' for wheel in VehicleParams.wheel_names]
-    steering_angle_cols = 'sensors_steering_angle'
+    brake_pressure_cols = [Var.bp_front for _ in range(4)]
+    motor_torques_cols = Var.torques
+    motor_speeds_cols = Var.motor_speeds
+    steering_angle_cols = Var.steering_deg
 
     def __init__(self):
         super().__init__("tab8", "Attitude Estimation")
@@ -36,21 +36,21 @@ class Tab8(Tab):
             data = session_creator.fetch_data(datetime_range, verify_ssl=st.session_state.verify_ssl)
 
             # Calculate pitch and roll drift
-            roll_drift = data['sensors_gyroX'][data[self.motor_speeds_cols[0]] == 0].iloc[:400].mean()
-            pitch_drift = data['sensors_gyroY'][data[self.motor_speeds_cols[0]] == 0].iloc[:400].mean()
+            roll_drift = data[Var.gyroX][data[self.motor_speeds_cols[0]] == 0].iloc[:400].mean()
+            pitch_drift = data[Var.gyroY][data[self.motor_speeds_cols[0]] == 0].iloc[:400].mean()
 
-            data['pitch_integrated'] = data['sensors_gyroY'].cumsum() * VehicleParams.dt
-            data['roll_integrated'] = data['sensors_gyroX'].cumsum() * VehicleParams.dt
-            data['pitch_integrated_no_drift'] = (data['sensors_gyroY'] - pitch_drift).cumsum() * VehicleParams.dt
-            data['roll_integrated_no_drift'] = (data['sensors_gyroX'] - roll_drift).cumsum() * VehicleParams.dt
+            data['pitch_integrated'] = data[Var.gyroY].cumsum() * VehicleParams.dt
+            data['roll_integrated'] = data[Var.gyroX].cumsum() * VehicleParams.dt
+            data['pitch_integrated_no_drift'] = (data[Var.gyroY] - pitch_drift).cumsum() * VehicleParams.dt
+            data['roll_integrated_no_drift'] = (data[Var.gyroX] - roll_drift).cumsum() * VehicleParams.dt
 
-            data['sensors_accZ'] = -data['sensors_accZ']
-            data['accZ_lowpass'] = data['sensors_accZ'].rolling(window=100).mean().fillna(value=9.81).astype(float)
+            data['sensors_accZ'] = -data[Var.accZ]
+            data['accZ_lowpass'] = data[Var.accZ].rolling(window=100).mean().fillna(value=9.81).astype(float)
 
-            data['pitch_accel'] = np.arctan2(data['sensors_accX'], np.sqrt(data['sensors_accY'] ** 2 + data['sensors_accZ'] ** 2))
-            data['roll_accel'] = data[['sensors_aYEst', 'sensors_vXEst', 'sensors_gyroZ']].apply(
+            data['pitch_accel'] = np.arctan2(data[Var.accX], np.sqrt(data[Var.accY] ** 2 + data[Var.accZ] ** 2))
+            data['roll_accel'] = data[[Var.se_ay, Var.se_vx, Var.gyroZ]].apply(
                 lambda x: np.arcsin(np.clip((x[2] * x[1] - x[0]) / VehicleParams.g, -1, 1)), axis=1)
-            data['vx_dot'] = data['sensors_vXEst'].diff(5) /(5* VehicleParams.dt)
+            data['vx_dot'] = data[Var.se_vx].diff(5) /(5* VehicleParams.dt)
             self.memory['data'] = data
 
         if len(self.memory['data']) > 0:
@@ -82,7 +82,7 @@ class Tab8(Tab):
                     attitude_estimator.Q = np.eye(attitude_estimator.dim_x) * q_noise
                     attitude_estimator.R = np.eye(attitude_estimator.dim_z) * r_noise
                     for index, row in stqdm(data.iterrows()):
-                        attitude_estimator.predict([row['sensors_gyroY'], row['sensors_gyroX']])
+                        attitude_estimator.predict([row[Var.gyroY], row[Var.gyroX]])
                         attitude_estimator.update([row['accZ_lowpass']])
                         attitudes.append(attitude_estimator.x)
                 elif estimator_type == "AttitudeEstimation":
@@ -92,17 +92,17 @@ class Tab8(Tab):
                     vx_prev = 0
                     vy_prev = 0
                     for index, row in stqdm(data.iterrows()):
-                        vx = row['sensors_vXEst']
-                        vy = row['sensors_vYEst']
+                        vx = row[Var.se_vx]
+                        vy = row[Var.se_vy]
                         vx_dot = (vx - vx_prev) / VehicleParams.dt
                         vy_dot = (vy - vy_prev) / VehicleParams.dt
-                        ax = row['sensors_aXEst']
-                        ay = row['sensors_aYEst']
-                        az = row['sensors_accZ']
-                        yaw_rate = row['sensors_gyroZ']
+                        ax = row[Var.se_ax]
+                        ay = row[Var.se_ay]
+                        az = row[Var.accZ]
+                        yaw_rate = row[Var.gyroZ]
                         ax_delta = ax - vx_dot + vy * yaw_rate
                         ay_delta = ay - vy_dot - vx * yaw_rate
-                        attitude_estimator.predict([row['sensors_gyroY'], row['sensors_gyroX']])
+                        attitude_estimator.predict([row[Var.gyroY], row[Var.gyroX]])
                         attitude_estimator.update(np.array([ax_delta, ay_delta, az]))
                         attitudes.append(attitude_estimator.x)
                         vx_prev = vx
@@ -112,8 +112,8 @@ class Tab8(Tab):
                     attitude_estimator.Q = np.eye(attitude_estimator.dim_x) * q_noise
                     attitude_estimator.R = np.eye(attitude_estimator.dim_z) * r_noise
                     for index, row in stqdm(data.iterrows()):
-                        attitude_estimator.predict([row['sensors_gyroY'], row['sensors_gyroX']])
-                        attitude_estimator.update([row['sensors_aXEst'], row['sensors_aYEst'], row['sensors_accZ'], row['sensors_vXEst'], row['sensors_vYEst'], row['sensors_gyroZ']])
+                        attitude_estimator.predict([row[Var.gyroY], row[Var.gyroX]])
+                        attitude_estimator.update([row[Var.se_ax], row[Var.se_ay], row[Var.accZ], row[Var.se_vx], row[Var.se_vy], row[Var.gyroZ]])
                         attitudes.append(attitude_estimator.x[:2])
 
                 else:
@@ -121,8 +121,8 @@ class Tab8(Tab):
                     attitude_estimator.Q = np.eye(attitude_estimator.dim_x) * q_noise
                     attitude_estimator.R = np.eye(attitude_estimator.dim_z) * r_noise
                     for index, row in stqdm(data.iterrows()):
-                        attitude_estimator.predict([row['sensors_gyroY'], row['sensors_gyroX']])
-                        attitude_estimator.update([row['sensors_aXEst'], row['sensors_aYEst'], row['sensors_accZ']])
+                        attitude_estimator.predict([row[Var.gyroY], row[Var.gyroX]])
+                        attitude_estimator.update([row[Var.se_ax], row[Var.se_ay], row[Var.accZ]])
                         attitudes.append(attitude_estimator.x)
 
                 attitudes = np.array(attitudes)
@@ -130,8 +130,8 @@ class Tab8(Tab):
                 data['rollEst'] = attitudes[:, 1]
                 data['pitchEst_deg'] = attitudes[:, 0] * 180 / np.pi
                 data['rollEst_deg'] = attitudes[:, 1] * 180 / np.pi
-                data['new_Accx'] = data['sensors_aXEst'] - VehicleParams.g * np.sin(data['pitchEst'])
-                data['new_Accy'] = data['sensors_aYEst'] + VehicleParams.g * np.sin(data['rollEst'])
+                data['new_Accx'] = data[Var.se_ax] - VehicleParams.g * np.sin(data['pitchEst'])
+                data['new_Accy'] = data[Var.se_ay] + VehicleParams.g * np.sin(data['rollEst'])
 
             if 'pitchEst' in data.columns:
                 plot_data(
@@ -144,14 +144,14 @@ class Tab8(Tab):
                 plot_data(
                     data=data,
                     tab_name=self.name + "new accx",
-                    default_columns=['sensors_aXEst', 'new_Accx', 'pitchEst_deg'],
+                    default_columns=[Var.se_ax, 'new_Accx', 'pitchEst_deg'],
                     title="AccX estimation",
                 )
 
                 plot_data(
                     data=data,
                     tab_name=self.name + "new accy",
-                    default_columns=['sensors_aYEst', 'new_Accy', 'rollEst_deg'],
+                    default_columns=[Var.se_ay, 'new_Accy', 'rollEst_deg'],
                     title="AccY estimation",
                 )
 

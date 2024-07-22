@@ -1,6 +1,6 @@
 import numpy as np
-import streamlit as st
 import pandas as pd
+import streamlit as st
 from stqdm import stqdm
 
 from src.backend.state_estimation.config.state_estimation_param import SE_param
@@ -55,11 +55,12 @@ def download_data(tab: Tab):
         file_name=file_name, key="download_button csv"
     )
 
-    st.download_button(
-        label="Download data for Open Loop simulation",
-        data=tab.memory['data'][se_downloaded_columns].to_csv(header=True).encode("utf-8"),
-        file_name=file_name, key="download_button csv se"
-    )
+    if st.button("Download data for Open Loop simulation"):
+        st.download_button(
+            label="Download data for Open Loop simulation",
+            data=tab.memory['data'][se_downloaded_columns].to_csv(header=True).encode("utf-8"),
+            file_name=file_name, key="download_button csv se"
+        )
 
 
 def compute_state_estimator(tab: Tab):

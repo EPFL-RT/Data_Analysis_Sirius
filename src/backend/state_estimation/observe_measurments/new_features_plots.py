@@ -1,7 +1,7 @@
 import pandas as pd
+import streamlit as st
 
 from src.frontend.plotting.plotting import plot_data
-import streamlit as st
 
 
 def plot_new_features(new_data: pd.DataFrame, tab_name: str, wheel_acc_cols: list, long_tire_force_name: list,

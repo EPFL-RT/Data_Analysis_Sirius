@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.linalg import expm
 
 from src.backend.state_estimation.config.vehicle_params import VehicleParams
 

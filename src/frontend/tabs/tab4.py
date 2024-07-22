@@ -3,6 +3,7 @@ import pandas as pd
 import streamlit as st
 from matplotlib import pyplot as plt
 
+from config.bucket_config import Var
 from src.backend.sessions.create_sessions import SessionCreator
 from src.frontend.tabs.base import Tab
 
@@ -31,11 +32,10 @@ class Tab4(Tab):
 
             # Select the velocities and the motor speeds
             velocities = pd.DataFrame()
-            velocities['sensors_accX'] = data['sensors_accX'].rolling(window=5).mean()
-            velocities['sensors_aXEst'] = data['sensors_aXEst'].copy()
-            velocities['sensors_vXEst'] = data['sensors_vXEst'].copy()
-            velocities['VSI_Motor_Speed_mean'] = data[
-                ['VSI_Motor_Speed_FR', 'VSI_Motor_Speed_FL', 'VSI_Motor_Speed_RR', 'VSI_Motor_Speed_RL']].mean(axis=1) * k
+            velocities[Var.accX] = data[Var.accX].rolling(window=5).mean()
+            velocities[Var.se_ax] = data[Var.se_ax].copy()
+            velocities[Var.se_vx] = data[Var.se_vx].copy()
+            velocities['VSI_Motor_Speed_mean'] = data[Var.motor_speeds].mean(axis=1) * k
 
             # Select a sample of the data
             samples_to_plot = st.select_slider(
