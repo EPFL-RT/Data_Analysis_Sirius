@@ -7,14 +7,9 @@ from src.backend.state_estimation.config.state_estimation_param import SE_param
 from src.backend.state_estimation.measurments.sensors import Sensors, get_sensors_from_data
 from src.backend.state_estimation.state_estimator_app import StateEstimatorApp
 from src.frontend.tabs import Tab
+from config.bucket_config import Var
 
-se_downloaded_columns = [
-    'sensors_accX', 'sensors_accY', 'sensors_accZ',
-    'VSI_Motor_Speed_FL', 'VSI_Motor_Speed_FR', 'VSI_Motor_Speed_RL', 'VSI_Motor_Speed_RR',
-    'sensors_gyroZ', 'sensors_brake_pressure_L', 'sensors_brake_pressure_R', 'sensors_steering_angle',
-    'VSI_TrqFeedback_FL', 'VSI_TrqFeedback_FR', 'VSI_TrqFeedback_RL', 'VSI_TrqFeedback_RR',
-    'sensors_APPS_Travel', 'sensors_BPF'
-]
+se_downloaded_columns = [Var.accX, Var.accY, Var.accZ] + Var.motor_speeds + [Var.gyroZ, Var.bp_front, Var.bp_rear, Var.steering_deg] + Var.torques + [Var.apps, Var.bpf]
 
 @st.experimental_dialog("Dialogue box", width='large')
 def create_dialogue_box(tab: Tab):
@@ -95,10 +90,10 @@ def compute_state_estimator(tab: Tab):
 def filter_apps_duration(tab: Tab):
     data = tab.memory['data']
     cols = st.columns(3)
-    apps_diff = data['sensors_APPS_Travel'].diff()
+    apps_diff = data[Var.apps].diff()
     if cols[0].toggle("Filter APPS rising edge", key=f"{tab.name} filter APPS rising edge", value=True):
         # Find and APPS rising edge
-        apps_rising_edge = apps_diff.gt(0)
+        apps_rising_edge = apps_diff > 1
         apps_rising_edge = apps_rising_edge[apps_rising_edge].index
         if len(apps_rising_edge) > 0:
             rising_edge_time = cols[0].selectbox(

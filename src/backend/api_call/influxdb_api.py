@@ -37,6 +37,7 @@ class InfluxDbFetcher(Fetcher):
                 df["_time"] = pd.to_datetime(df["_time"])
                 df.set_index("_time", inplace=True)
             return df
+        
 
 
 if __name__ == '__main__':

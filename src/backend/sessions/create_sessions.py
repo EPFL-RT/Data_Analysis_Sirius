@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 import urllib3
 
-from config.bucket_config import BucketConfig
+from config.bucket_config import BucketConfig, Measurements
 from config.config import FSM, ConfigLogging
 from src.backend.api_call.base import Fetcher
 from src.backend.api_call.influxdb_api import InfluxDbFetcher
@@ -47,7 +47,7 @@ class SessionCreator:
         if len(df_r2d) == 0:
             return pd.DataFrame()
         else:
-            threshold = pd.Timedelta(seconds=1.0)
+            threshold = pd.Timedelta(seconds=10.0)
             separation_indexes = df_r2d.index[df_r2d.index.to_series().diff() > threshold].tolist()
             separation_indexes = [df_r2d.index[0]] + separation_indexes + [df_r2d.index[-1]]
             dfs = [df_r2d.loc[separation_indexes[i]:separation_indexes[i + 1]] for i in
@@ -75,6 +75,10 @@ class SessionCreator:
             session_info = session_info_crud.read(session_index)
             # session_info['driver'] = drivers.get(session_info['driver'], 'Unknown')
             cols[1].json(session_info, expanded=True)
+
+        if cols[0].toggle("Show tuning data", key=f"{key} toggle tuning data"):
+            last_tuning_data = self.fetch_last_tuning_data(session_index, verify_ssl=st.session_state.verify_ssl)
+            cols[1].json(last_tuning_data.iloc[0].to_dict(), expanded=True)
         return session_index
 
     def r2d_multi_session_selector(self, dfs: pd.DataFrame, key: str = None) -> List[int]:
@@ -165,6 +169,20 @@ class SessionCreator:
         |> yield(name: "mean")
         """
         return self.recursive_fetch(query, verify_ssl)
+    
+    def fetch_last_tuning_data(self, session_index: int, verify_ssl: bool) -> pd.DataFrame:
+        start_date = date_to_influx(st.session_state.sessions['start'][session_index])
+        end_date = date_to_influx(st.session_state.sessions['end'][session_index])
+
+        query = f"""from(bucket:"{self.fetcher.bucket_name}") 
+        |> range(start: {start_date}, stop: {end_date})
+        |> filter(fn: (r) => r["_measurement"] == "{Measurements.Tune}")
+        |> last() 
+        |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+        |> drop(columns: ["_start", "_stop"])
+        """
+        return self.recursive_fetch(query, verify_ssl)
+
 
     def fetch_data_time(self, start_date: pd.Timestamp, end_date: pd.Timestamp, verify_ssl: bool) -> pd.DataFrame:
         start_date = date_to_influx(start_date)

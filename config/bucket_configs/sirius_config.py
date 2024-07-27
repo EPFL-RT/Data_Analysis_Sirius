@@ -3,7 +3,7 @@ from enum import Enum
 wheels = ['FL', 'FR', 'RL', 'RR']
 
 
-class BucketConfig(Enum):
+class BucketConfig:
     bucket_name = "Sirius"
     bucket_name_live = "Sirius"
     fsm = "FSM"
@@ -21,7 +21,7 @@ class Measurements:
     all = [AMS, VSI, sensors, state_estimation, ctrl, mtr, DV]
 
 
-class SiriusConfig(Enum):
+class Var:
     # VSI
     torques = [f"VSI_TrqFeedBack_{w}" for w in wheels]
     vsi_error_codes = [f"VSI_ErrorCode_{w}" for w in wheels]
@@ -45,7 +45,7 @@ class SiriusConfig(Enum):
     tv_yaw_ref = "CTRL_TV_yaw_ref"
 
     # AMS
-    hv_current = "AMS_Current"
+    hv_current = "AMS_Current_BMS"
     lv_current = "AMS_CurrentLV"
     hv_voltage = "AMS_VBat"
     lv_voltage = "AMS_VBatLV"
@@ -69,6 +69,7 @@ class SiriusConfig(Enum):
     se_SR = [f"SE_sr_{w}" for w in wheels]
     mu = "SE_mu"
     se_Fz = [f"SE_Fz_{w}" for w in wheels]
+    FZs = [f"SE_Fz_{w}" for w in wheels]
 
     # Sensors
     accX = "sensors_accX"
@@ -89,10 +90,12 @@ class SiriusConfig(Enum):
 
     # Extra columns
     wheel_speed = [f"vWheel_{w}" for w in wheels]
+    wheel_speeds_est_cols = [f"vWheel_{w}_est" for w in wheels]
     se_wheel_speed = [f"vWheel_{w}_est" for w in wheels]
     wheel_acc = [f"accWheel_{w}" for w in wheels]
     wheel_deltas = [f"deltaWheel_{w}" for w in wheels]
     vLongs = [f"vLong_{w}" for w in wheels]
+
 
     Fls = [f"Fl_{w}" for w in wheels]
     bps = [bp_front, bp_front, bp_rear, bp_rear]

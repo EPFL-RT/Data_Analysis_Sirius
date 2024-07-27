@@ -10,7 +10,6 @@ from src.frontend.tabs import Tab
 
 
 class Tab14(Tab):
-    knob_mode = 'sensors_Knob3_Mode'
     acc_cols = [Var.se_ax, Var.se_ay]
     speed_cols = [Var.se_vx, Var.se_vy]
 
@@ -61,16 +60,17 @@ class Tab14(Tab):
             data = self.memory['data']
 
             with st.container(border=True):
-                mode_int = data[self.knob_mode].iloc[0]
+                mode_int = 1
                 elapsed_time = data.index[-1] - data.index[0] + self.sampling_time
-                arg_max_accx = data['sensors_accX'].rolling(10).mean().idxmax()
-                max_accx = data['sensors_accX'].rolling(10).mean().max()
-                arg_max_vx = data['sensors_vXEst'].rolling(10).mean().idxmax()
-                max_vx = data['sensors_vXEst'].rolling(10).mean().max()
-                mean_accx = data['sensors_accX'].mean()
+                arg_max_accx = data[Var.accX].rolling(10).mean().idxmax()
+                max_accx = data[Var.accX].rolling(10).mean().max()
+                arg_max_vx = data[Var.se_vx].rolling(10).mean().idxmax()
+                max_vx = data[Var.se_vx].rolling(10).mean().max()
+                mean_accx = data[Var.accX].mean()
+
 
                 # Compute distance from velocity
-                data['distance'] = data['sensors_vXEst'].cumsum() * self.sampling_time
+                data['distance'] = data[Var.se_vx].cumsum() * self.sampling_time
                 distance = data['distance'].iloc[-1]
 
                 # Show metrics
@@ -87,7 +87,7 @@ class Tab14(Tab):
             st.subheader("Session Overview")
             cols = st.columns(3)
             with cols[0]:
-                driver_inputs_cols = ['sensors_APPS_Travel', 'sensors_BPF', 'sensors_steering_angle']
+                driver_inputs_cols = [Var.apps, Var.bpf, Var.steering_deg]
                 plot_data(data=data, tab_name=self.name + "DI", title="Driver Inputs",
                           default_columns=driver_inputs_cols, simple_plot=True)
             with cols[1]:
@@ -95,7 +95,7 @@ class Tab14(Tab):
                 plot_data(data=data, tab_name=self.name + "CO", title="Car Outputs", default_columns=car_outputs_cols,
                           simple_plot=True)
             with cols[2]:
-                sensors_cols = ['sensors_accX', 'sensors_accY'] + Var.motor_speeds
+                sensors_cols = [Var.accX, Var.accY] + Var.motor_speeds
                 plot_data(data=data, tab_name=self.name + "S", title="Sensors", default_columns=sensors_cols,
                           simple_plot=True)
             st.divider()
@@ -132,9 +132,9 @@ class Tab14(Tab):
 
             # PLot acceleration and speed
             with tabs[0]:
-                data['v_accX_integrated'] = data['sensors_accX'].cumsum() * self.sampling_time
+                data['v_accX_integrated'] = data[Var.accX].cumsum() * self.sampling_time
                 plot_data(data=data, tab_name=self.name + "AS", title="Overview",
-                          default_columns=['sensors_accX', 'sensors_accY'] + self.acc_cols + self.speed_cols + [
+                          default_columns=[Var.accX, Var.accX] + self.acc_cols + self.speed_cols + [
                               'v_accX_integrated'])
 
             # Plot yaw rate tracking
@@ -144,10 +144,10 @@ class Tab14(Tab):
                     plot_data_comparaison(
                         data=self.memory['data'],
                         tab_name=self.name + "_tv_reference_comparison",
-                        default_columns=["sensors_gyroZ", "sensors_TV_yaw_ref"],
+                        default_columns=[Var.gyroZ, Var.tv_yaw_ref],
                         title="TV reference tracking",
                         comparison_names=["Oversteer", "Understeer"],
-                        extra_columns=['steering_angle_rad'],
+                        extra_columns=[Var.steering_rad],
                     )
 
             # Plot wheel speeds
@@ -255,7 +255,7 @@ class Tab14(Tab):
                 with tab_map[name]:
                     plot_data_comparaison(
                         data=data, tab_name=self.name + "DT", title="Delta Torque plot",
-                        default_columns=[Var.delta_torque_feedback, 'sensors_TV_delta_torque'],
+                        default_columns=[Var.delta_torque_feedback, Var.tv_delta_torque],
                         extra_columns=[Var.steering_deg]
                     )
 

@@ -6,7 +6,7 @@
         "weather": "Dry"
     },
     "1": {
-        "description": "replacement",
+        "description": "",
         "driver": "Aubin",
         "flag": null,
         "weather": "Dry"
@@ -72,7 +72,7 @@
         "weather": "Dry"
     },
     "2": {
-        "description": "différentiel bloqué",
+        "description": "testing, brake disk broke",
         "driver": "Aubin",
         "flag": null,
         "weather": "Dry"

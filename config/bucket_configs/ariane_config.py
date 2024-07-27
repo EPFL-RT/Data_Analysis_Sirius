@@ -3,7 +3,7 @@ from enum import Enum
 wheels = ['FL', 'FR', 'RL', 'RR']
 
 
-class BucketConfig(Enum):
+class BucketConfig:
     bucket_name = "ariane"
     bucket_name_live = "Ariane"
     fsm = "FSM"

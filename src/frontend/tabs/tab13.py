@@ -13,8 +13,6 @@ class Tab13(Tab):
     acc_cols = [Var.se_ax, Var.se_ay]
     speed_cols = [Var.se_vx, Var.se_vy]
 
-    # knob_mode = 'sensors_Knob3_Mode'
-
     def __init__(self):
         super().__init__(name="tab13", description="Acceleration Analysis")
         if "data" not in self.memory:
@@ -25,8 +23,6 @@ class Tab13(Tab):
         self.slip_cols100 = [sr + '_100' for sr in Var.se_SR]
         self.slip_cols1000 = [sr + '_1000' for sr in Var.se_SR]
         self.longitudinal_forces_est_cols = [f + "est" for f in Var.Fls]
-
-        self.knob_mode = 'sensors_Knob3_Mode'
 
         self.sampling_time = 0.01
 
@@ -66,7 +62,7 @@ class Tab13(Tab):
             data = self.memory['data']
 
             with st.container(border=True):
-                mode_int = data[self.knob_mode].iloc[0]
+                mode_int = 1
                 elapsed_time = data.index[-1] - data.index[0] + self.sampling_time
                 arg_max_accx = data[Var.accX].rolling(10).mean().idxmax()
                 max_accx = data[Var.accX].rolling(10).mean().max()
@@ -100,7 +96,7 @@ class Tab13(Tab):
                 plot_data(data=data, tab_name=self.name + "CO", title="Car Outputs", default_columns=car_outputs_cols,
                           simple_plot=True)
             with cols[2]:
-                sensors_cols = [Var.accX, Var.accY] + Var.motor_speeds + ['sensors_RTK_v_norm']
+                sensors_cols = [Var.accX, Var.accY] + Var.motor_speeds
                 plot_data(data=data, tab_name=self.name + "S", title="Sensors", default_columns=sensors_cols,
                           simple_plot=True)
             st.divider()
