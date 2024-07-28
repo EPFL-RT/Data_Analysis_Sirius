@@ -43,6 +43,9 @@ class SessionInfoJsonCRUD(CRUD):
             for k in SessionInfo.__annotations__.keys():
                 if k not in res:
                     res[k] = None
+            for k in res.keys():
+                if k not in SessionInfo.__annotations__.keys():
+                    del res[k]
             return res
         return None
 

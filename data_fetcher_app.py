@@ -120,7 +120,22 @@ if __name__ == '__main__':
                     st.session_state.sessions = pd.concat(
                         [st.session_state.sessions, st.session_state.session_info_data], axis=1
                     )
-            st.dataframe(st.session_state.sessions.drop(columns=['start', 'end']), use_container_width=True)
+            if "Event" not in st.session_state.sessions.columns:
+                if st.button("Get control tunables"):
+                    with st.spinner("Fetching control tunables..."):
+                        session_creator = st.session_state.session_creator
+                        tuning_data = pd.DataFrame({i:session_creator.fetch_last_tuning_data(i, verify_ssl=st.session_state.verify_ssl).iloc[0] for i in st.session_state.sessions.index}).T
+                        
+                        st.session_state.sessions = pd.concat(
+                            [st.session_state.sessions, tuning_data], axis=1
+                        )
+
+            sessions = st.session_state.sessions.drop(columns=['start', 'end'])
+            all_columns = list(sessions.columns)
+            default_columns = ["duration", "start_time", "end_time", "Event","description", "TA_mode", "TC_mode","Torque_Bias", "mu_x_init", "mu_x_max", "mu_x_rise"]
+            default_columns = [col for col in default_columns if col in all_columns]
+            columns = st.multiselect("Columns", all_columns, default=default_columns, key="select_columns sessions")
+            st.dataframe(sessions[columns], use_container_width=True)
 
         with st.sidebar:
             with st.expander("Data Buckets & Dialogue Box", expanded=True):

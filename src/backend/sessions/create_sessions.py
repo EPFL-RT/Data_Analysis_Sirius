@@ -177,11 +177,13 @@ class SessionCreator:
         query = f"""from(bucket:"{self.fetcher.bucket_name}") 
         |> range(start: {start_date}, stop: {end_date})
         |> filter(fn: (r) => r["_measurement"] == "{Measurements.Tune}")
-        |> last() 
+        |> first() 
         |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
         |> drop(columns: ["_start", "_stop"])
         """
-        return self.recursive_fetch(query, verify_ssl)
+        tuning_data = self.recursive_fetch(query, verify_ssl)
+        tuning_data.drop(columns=["_measurement"], inplace=True)
+        return tuning_data
 
 
     def fetch_data_time(self, start_date: pd.Timestamp, end_date: pd.Timestamp, verify_ssl: bool) -> pd.DataFrame:

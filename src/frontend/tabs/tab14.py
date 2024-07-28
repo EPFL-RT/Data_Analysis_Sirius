@@ -62,11 +62,11 @@ class Tab14(Tab):
             with st.container(border=True):
                 mode_int = 1
                 elapsed_time = data.index[-1] - data.index[0] + self.sampling_time
-                arg_max_accx = data[Var.accX].rolling(10).mean().idxmax()
-                max_accx = data[Var.accX].rolling(10).mean().max()
+                arg_max_accx = data[Var.accY].rolling(10).mean().idxmax()
+                max_accx = data[Var.accY].rolling(10).mean().max()
                 arg_max_vx = data[Var.se_vx].rolling(10).mean().idxmax()
                 max_vx = data[Var.se_vx].rolling(10).mean().max()
-                mean_accx = data[Var.accX].mean()
+                mean_accx = data[Var.accY].mean()
 
 
                 # Compute distance from velocity
@@ -77,8 +77,8 @@ class Tab14(Tab):
                 cols = st.columns([2, 2, 3, 3, 3, 3])
                 cols[0].metric("Mode", VehicleParams.ControlMode[mode_int])
                 cols[1].metric("Time", f"{elapsed_time:.2f} s")
-                cols[2].metric("Mean AccX", f"{mean_accx:.2f} m/s²")
-                cols[3].metric("Max AccX", f"{max_accx:.2f} m/s²", f"At {arg_max_accx:.2f} s", delta_color="off")
+                cols[2].metric("Mean AccY", f"{mean_accx:.2f} m/s²")
+                cols[3].metric("Max AccY", f"{max_accx:.2f} m/s²", f"At {arg_max_accx:.2f} s", delta_color="off")
                 cols[4].metric("Max VX", f"{max_vx:.2f} m/s", f"At {arg_max_vx:.2f} s", delta_color="off")
                 cols[5].metric("Distance", f"{distance:.2f} m")
 
