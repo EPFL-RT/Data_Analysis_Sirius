@@ -31,6 +31,7 @@ class Var:
     motor_speeds = [f"VSI_MotorRPM_{w}" for w in wheels]
     pos_torques = [f"VSI_PosTrqLim_{w}" for w in wheels]
     neg_torques = [f"VSI_NegTrqLim_{w}" for w in wheels]
+    deratings = [f"VSI_w_DERATING_{w}" for w in wheels]
     VDC_bus = "VSI_VDC_bus"
 
     # MTR
@@ -40,7 +41,7 @@ class Var:
     # CTRL
     max_torques = [f"CTRL_TC_Tmax_{w}" for w in wheels]
     min_torques = [f"CTRL_TC_Tmin_{w}" for w in wheels]
-    ta_torques = [f"CTRL_TA_torque{w}" for w in wheels]
+    ta_torques = [f"CTRL_TA_torque_{w}" for w in wheels]
     torque_cmd = "CTRL_Torque_cmd"
     tv_delta_torque = "CTRL_TV_delta_torque"
     tv_yaw_ref = "CTRL_TV_yaw_ref"
