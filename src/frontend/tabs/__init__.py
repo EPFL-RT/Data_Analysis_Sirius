@@ -8,6 +8,7 @@ from src.frontend.tabs.tab12 import Tab12
 from src.frontend.tabs.tab13 import Tab13
 from src.frontend.tabs.tab14 import Tab14
 from src.frontend.tabs.tab15 import Tab15
+from src.frontend.tabs.tab16 import Tab16
 from src.frontend.tabs.tab2 import Tab2
 from src.frontend.tabs.tab3 import Tab3
 from src.frontend.tabs.tab4 import Tab4
@@ -20,7 +21,7 @@ from src.frontend.tabs.telemetry_description_tab import TelemetryDescriptionTab
 
 
 def create_tabs() -> dict[str, Tab]:
-    tabs = [TelemetryDescriptionTab(), SessionInfoTab(), Tab1(), Tab2(), Tab3(), Tab4(), Tab5(), Tab6(), Tab7(), Tab8(), Tab9(), Tab10(), Tab11(), Tab12(), Tab13(), Tab14(), Tab15()]
+    tabs = [TelemetryDescriptionTab(), SessionInfoTab(), Tab1(), Tab2(), Tab3(), Tab4(), Tab5(), Tab6(), Tab7(), Tab8(), Tab9(), Tab10(), Tab11(), Tab12(), Tab13(), Tab14(), Tab15(), Tab16()]
     tabs = list(reversed(tabs))
     tab_names = [tab.name for tab in tabs]
     assert len(tab_names) == len(set(tab_names)), "There must not be any duplicate tab names"

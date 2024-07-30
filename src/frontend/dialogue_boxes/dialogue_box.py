@@ -114,7 +114,7 @@ def filter_apps_duration(tab: Tab):
             st.warning("No falling edge found")
 
     time_from_start = cols[2].number_input(
-        "Time from start [ms]", value=200, key=f"{tab.name} time from start")
+        "Time from start [ms]", value=400, key=f"{tab.name} time from start")
     if cols[2].toggle("Filter with time from start", value=True):
         data = data.iloc[:time_from_start]
 
