@@ -43,8 +43,8 @@ class Tab16(Tab):
             data[self.efficiency][data[self.efficiency] >= 1] = np.nan
             data[self.efficiency][data[self.efficiency] <= 0] = np.nan
 
-            data[self.efficiency] = data[self.efficiency].fillna(method='ffill')
-            data[self.efficiency] = data[self.efficiency].fillna(method='bfill')
+            # data[self.efficiency] = data[self.efficiency].fillna(method='ffill')
+            # data[self.efficiency] = data[self.efficiency].fillna(method='bfill')
             data[self.power_limit] = 80000
             data[self.torque_sum] = data[Var.torques].sum(axis=1)
             data[self.efficiency100000] = data[self.efficiency] * 100000
