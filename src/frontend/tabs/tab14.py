@@ -134,7 +134,7 @@ class Tab14(Tab):
             with tabs[0]:
                 data['v_accX_integrated'] = data[Var.accX].cumsum() * self.sampling_time
                 plot_data(data=data, tab_name=self.name + "AS", title="Overview",
-                          default_columns=[Var.accX, Var.accX] + self.acc_cols + self.speed_cols + [
+                          default_columns=[Var.accX, Var.accY] + self.acc_cols + self.speed_cols + [
                               'v_accX_integrated'])
 
             # Plot yaw rate tracking

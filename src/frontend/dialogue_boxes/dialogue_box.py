@@ -9,7 +9,7 @@ from src.backend.state_estimation.state_estimator_app import StateEstimatorApp
 from src.frontend.tabs import Tab
 from config.bucket_config import Var
 
-se_downloaded_columns = [Var.accX, Var.accY, Var.accZ] + Var.motor_speeds + [Var.gyroZ, Var.bp_front, Var.bp_rear, Var.steering_deg] + Var.torques + [Var.apps, Var.bpf]
+se_downloaded_columns = [Var.accX, Var.accY, Var.accZ] + Var.motor_speeds + [Var.gyroZ, Var.bp_front, Var.bp_rear, Var.steering_deg] + Var.torques + [Var.apps, Var.bpf] + [Var.hv_Vmax, Var.hv_current, Var.hv_voltage, Var.hv_Vmin]
 
 @st.experimental_dialog("Dialogue box", width='large')
 def create_dialogue_box(tab: Tab):

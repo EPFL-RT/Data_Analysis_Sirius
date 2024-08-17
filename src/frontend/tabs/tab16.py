@@ -18,6 +18,10 @@ class Tab16(Tab):
     efficiency100000 = "Efficiency_10000"
     power_limit = "Power_Limit"
     torque_sum = "Torque_Sum"
+    open_vmax = 'Open_Vmax'
+    open_vmin = 'Open_Vmin'
+    anti_ams_regen = 'Anti_AMS_regen'
+    anti_ams_mot = 'Anti_AMS_mot'
 
     def __init__(self):
         super().__init__(name="tab16", description="Motor efficiency")
@@ -48,6 +52,12 @@ class Tab16(Tab):
             data[self.power_limit] = 80000
             data[self.torque_sum] = data[Var.torques].sum(axis=1)
             data[self.efficiency100000] = data[self.efficiency] * 100000
+            data[self.open_vmax] = data[Var.hv_Vmax] - data[Var.hv_current] * 0.015 * 0.142
+            data[self.open_vmin] = data[Var.hv_Vmin] - data[Var.hv_current] * 0.015 * 0.142
+
+
+            speed = np.maximum(data[Var.motor_speeds[0]], 1)
+            data[self.anti_ams_regen] = -(((4.15 - data[self.open_vmax]) / 0.015) * data[Var.hv_voltage] * 7) / (speed * 6.25 / 60 / 13.19)
             self.memory['data'] = data
 
         if len(self.memory['data']) > 0:
