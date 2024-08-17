@@ -103,16 +103,20 @@ class SessionCreator:
                 st.warning("The connection to the database timed out. Tyring again with divide and conquer strategy...")
 
                 # Split the datetime range in two
-                datetime_range = timestamp_to_datetime_range(start_date, end_date)
-                start = pd.to_datetime(datetime_range[0].split()[1])
-                end = pd.to_datetime(datetime_range[1].split()[1][:-1])
+                datetime_range = query.split('|>')[1].strip()
+                start = pd.to_datetime(datetime_range.split(',')[0].split()[1])
+                end = pd.to_datetime(datetime_range.split(',')[1].split()[1][:-1])
                 mid = start + (end - start) / 2
 
                 # Fetch the data into 2 steps
                 first_datetime_range = timestamp_to_datetime_range(start, mid)
                 second_datetime_range = timestamp_to_datetime_range(mid, end)
-                df1 = self.fetch_data(first_datetime_range, verify_ssl)
-                df2 = self.fetch_data(second_datetime_range, verify_ssl)
+
+                query1 = query.replace(datetime_range, first_datetime_range)
+                query2 = query.replace(datetime_range, second_datetime_range)
+
+                df1 = self.recursive_fetch(query1, verify_ssl)
+                df2 = self.recursive_fetch(query2, verify_ssl)
 
                 # Merge the data
                 df = pd.concat([df1, df2], ignore_index=True)

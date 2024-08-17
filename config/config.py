@@ -27,7 +27,7 @@ class ConfigLive(Config):
 class FSM:
     error = "Error"
     init = "Init"
-    ts_off = "TS off"
+    ts_off = "TS Off"
     pre_charge = "PreCharge"
     ts_on = "TS On"
     amk_start = "AMK Start"
