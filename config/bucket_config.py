@@ -72,6 +72,7 @@ class Var:
     mu = "SE_mu"
     se_Fz = [f"SE_Fz_{w}" for w in wheels]
     Fzs = [f"SE_Fz_{w}" for w in wheels]
+    distance = "SE_distance"
 
     # SENS
     accX = "SENS_accX"
