@@ -60,5 +60,7 @@ drivers = {
     'Loic': Driver(name='Loic', weight=76.0, height=1.85),
     'Alex': Driver(name='Alex', weight=76.0, height=1.85),
     'Seb': Driver(name='Seb', weight=72.0, height=1.78),
+    'Cyran': Driver(name='Cyran', weight=70.0, height=1.80),
+    'Thomas': Driver(name='Thomas', weight=61, height=1.68),
     'Unknown': Driver(name='Unknown', weight=75.0, height=1.80)
 }

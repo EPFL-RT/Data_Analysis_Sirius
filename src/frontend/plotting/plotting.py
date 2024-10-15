@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+from config.bucket_config import Var
 
 
 @st.experimental_fragment
@@ -28,7 +29,7 @@ def plot_data(
         columns_to_plot = st.multiselect(
             label="Select the labels to plot",
             options=data.columns,
-            default=["sensors_aXEst", "sensors_vXEst"] if default_columns is None else default_columns,
+            default=[Var.se_ax, Var.se_vx] if default_columns is None else default_columns,
             key=f"{tab_name} columns to plot",
             label_visibility="collapsed",
         )

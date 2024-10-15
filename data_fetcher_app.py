@@ -72,14 +72,7 @@ if __name__ == '__main__':
             )
 
             # Choose date range
-            date_default = "2024-05-04"
-            last_date = None
-            if cols[1].toggle("Last"):
-                with st.spinner("Fetching last available date..."):
-                    last_date = st.session_state.fetcher.get_last_data_date(fsm_value, st.session_state.verify_ssl)
-                    date_default = last_date
-                    if "session_info_crud" in st.session_state:
-                        st.session_state.pop("session_info_crud")
+            date_default = st.session_state.fetcher.get_last_data_date(fsm_value, st.session_state.verify_ssl)
             date = cols[0].date_input(
                 "Date", value=pd.to_datetime(date_default),
                 label_visibility="collapsed",

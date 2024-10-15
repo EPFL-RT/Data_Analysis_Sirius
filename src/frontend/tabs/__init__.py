@@ -23,8 +23,8 @@ from src.frontend.tabs.telemetry_description_tab import TelemetryDescriptionTab
 
 
 def create_tabs() -> dict[str, Tab]:
-    tabs = [TelemetryDescriptionTab(), FSMStateTab(), SessionInfoTab(), Tab1(), Tab2(), Tab3(), Tab4(), Tab5(), Tab6(), Tab7(), Tab8(), Tab9(), Tab10(), Tab11(), Tab12(), Tab13(), Tab14(), Tab15(), Tab16(), Tab17(), Tab18()]
-    tabs = list(reversed(tabs))
+    tabs = [Tab1(), Tab2(), Tab3(), Tab4(), Tab5(), Tab6(), Tab7(), Tab8(), Tab9(), Tab10(), Tab11(), Tab12(), Tab13(), Tab14(), Tab15(), Tab16(), Tab17(), Tab18(), SessionInfoTab()]
+    tabs = list(tabs)
     tab_names = [tab.name for tab in tabs]
     assert len(tab_names) == len(set(tab_names)), "There must not be any duplicate tab names"
     return {tab.description: tab for tab in tabs}
