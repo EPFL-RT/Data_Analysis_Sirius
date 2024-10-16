@@ -26,4 +26,5 @@ This is a simple script that fetches data from the EPFL Racing Team's website an
 3. Once the data is fetched, select on of the available sessions
 4. Chose the data you want to download
 5. Get a first visualization by plotting the data before downloading !
-6. Enter a file name and dowload the data by clicking the **Download data as CSV** button
+6. Click on the **Open dialogue Box** button in the sidebar
+7. Enter a file name and dowload the data by clicking the **Download data as CSV** button
