@@ -10,10 +10,16 @@ This is a simple script that fetches data from the EPFL Racing Team's website an
 3. Upgarde the package installer with `pip install --upgrade pip`
 4. Install the dependencies with `pip install -r requirements.txt`
 
+OR
+
 (Conda installation)
-1. Create a conda environment with `conda create --name <env_name> python=3.12`
-2. Activate the conda environment with `conda activate <env_name>`
-3. Install the dependencies with `pip install -r requirements.txt`
+1. Check conda installation conda
+1. If not installed_ Install miniconda: https://docs.anaconda.com/miniconda/
+2. Create a conda environment with `conda create --name <env_name> python=3.12`
+3. Activate the conda environment with `conda activate <env_name>`
+4. Install the dependencies with `pip install -r requirements.txt`
+
+
 
 #### Run the script
 1. Launch the app with `streamlit run data_fetcher_app.py`
