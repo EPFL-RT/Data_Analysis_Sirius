@@ -37,9 +37,8 @@ class Tab5(Tab):
             data[gyro_cols_deg] = data[gyro_cols].values * 180.0 / np.pi
 
             # Add wheel speeds in m/s
-            wheel_speeds_cols = ['VSI_Motor_Speed_FL', 'VSI_Motor_Speed_FR', 'VSI_Motor_Speed_RL', 'VSI_Motor_Speed_RR']
-            wheel_speeds_cols_m_s = [col + '_m_s' for col in wheel_speeds_cols]
-            data[wheel_speeds_cols_m_s] = data[wheel_speeds_cols].values * np.pi * VehicleParams.Rw / (
+            wheel_speeds_cols_m_s = [col + '_m_s' for col in Var.motor_speeds]
+            data[wheel_speeds_cols_m_s] = data[Var.motor_speeds].values * np.pi * VehicleParams.Rw / (
                         30.0 * VehicleParams.gear_ratio)
 
             # Add wheel slips and dpsi if not present
@@ -56,7 +55,7 @@ class Tab5(Tab):
             data = self.memory['data']
 
             # Convert yaw rate to deg/s
-            data['sensors_dpsi_est_deg'] = data[Var.se_yaw_rate] * 180.0 / np.pi
+            data['SE_yaw_rate_deg'] = data[Var.se_yaw_rate] * 180.0 / np.pi
 
             # Multiply slip ratios bs 100
             slip_cols_100 = [col + '_100' for col in Var.se_SR]
