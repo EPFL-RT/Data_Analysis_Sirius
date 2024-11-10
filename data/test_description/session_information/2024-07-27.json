@@ -1,202 +1,152 @@
 {
     "0": {
-        "control_mode": NaN,
         "description": "free",
         "driver": "Loic",
         "flag": null,
-        "weather": null,
-        "weather_condition": NaN
+        "weather": null
     },
     "1": {
-        "control_mode": NaN,
         "description": "slow skidpad",
         "driver": "Loic",
         "flag": null,
-        "weather": null,
-        "weather_condition": NaN
+        "weather": null
     },
     "10": {
-        "control_mode": NaN,
         "description": "run pas fini",
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "11": {
-        "control_mode": NaN,
         "description": "Missing APPS",
         "driver": NaN,
         "flag": "S&S",
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "12": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "13": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "14": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "15": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "16": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "17": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "18": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "19": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "2": {
-        "control_mode": NaN,
         "description": "Tests avec répartition bias torque rien",
         "driver": "Loic",
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "20": {
-        "control_mode": NaN,
-        "description": NaN,
+        "description": "teuussis",
         "driver": NaN,
-        "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "flag": "VD",
+        "weather": NaN
     },
     "21": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "22": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "23": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "24": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "3": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "4": {
-        "control_mode": NaN,
         "description": "cone touché",
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "5": {
-        "control_mode": NaN,
         "description": "cone touché",
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "6": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "7": {
-        "control_mode": NaN,
         "description": "understeer ",
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "8": {
-        "control_mode": NaN,
         "description": NaN,
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     },
     "9": {
-        "control_mode": NaN,
         "description": "5:01, mieux légé oversteer sur le 2eme tour",
         "driver": NaN,
         "flag": NaN,
-        "weather": NaN,
-        "weather_condition": NaN
+        "weather": NaN
     }
 }
